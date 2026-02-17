@@ -33,9 +33,7 @@ export default function PrivacyScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>2. Finalité du traitement</Text>
-        <Text style={styles.text}>
-          Les données collectées sont utilisées pour :
-        </Text>
+        <Text style={styles.text}>Les données collectées sont utilisées pour :</Text>
         <Text style={styles.bullet}>- La gestion de votre compte utilisateur</Text>
         <Text style={styles.bullet}>- Le traitement de vos demandes de devis</Text>
         <Text style={styles.bullet}>- L'établissement de factures</Text>
@@ -53,28 +51,28 @@ export default function PrivacyScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>4. Durée de conservation</Text>
         <Text style={styles.text}>
-          Vos données personnelles sont conservées pendant la durée nécessaire à l'exécution de nos services et conformément aux obligations légales en vigueur (notamment en matière de facturation). Les données de facturation sont conservées pendant 10 ans conformément aux obligations comptables.
+          Vos données personnelles sont conservées pendant la durée nécessaire à l'exécution de nos services et conformément aux obligations légales en vigueur. Les données de facturation sont conservées pendant 10 ans conformément aux obligations comptables.
         </Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>5. Partage des données</Text>
         <Text style={styles.text}>
-          Vos données personnelles ne sont pas vendues ni partagées avec des tiers à des fins commerciales. Elles peuvent être transmises à nos prestataires techniques dans le cadre strict de la fourniture de nos services (hébergement, traitement des paiements).
+          Vos données personnelles ne sont pas vendues ni partagées avec des tiers à des fins commerciales. Elles peuvent être transmises à nos prestataires techniques dans le cadre strict de la fourniture de nos services.
         </Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>6. Sécurité des données</Text>
         <Text style={styles.text}>
-          Nous mettons en œuvre des mesures techniques et organisationnelles appropriées pour protéger vos données personnelles contre tout accès non autorisé, modification, divulgation ou destruction.
+          Nous mettons en oeuvre des mesures techniques et organisationnelles appropriées pour protéger vos données personnelles contre tout accès non autorisé, modification, divulgation ou destruction.
         </Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>7. Vos droits</Text>
         <Text style={styles.text}>
-          Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez des droits suivants :
+          Conformément au RGPD, vous disposez des droits suivants :
         </Text>
         <Text style={styles.bullet}>- Droit d'accès à vos données personnelles</Text>
         <Text style={styles.bullet}>- Droit de rectification de vos données</Text>
@@ -88,7 +86,7 @@ export default function PrivacyScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>8. Cookies et technologies similaires</Text>
+        <Text style={styles.sectionTitle}>8. Cookies</Text>
         <Text style={styles.text}>
           L'application utilise des cookies de session nécessaires à son bon fonctionnement. Ces cookies sont indispensables à la navigation et ne peuvent pas être désactivés.
         </Text>
@@ -97,7 +95,7 @@ export default function PrivacyScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>9. Contact</Text>
         <Text style={styles.text}>
-          Pour toute question relative à la protection de vos données personnelles, vous pouvez nous contacter :
+          Pour toute question relative à la protection de vos données personnelles :
         </Text>
         <Text style={styles.text}>Email : contact@myjantes.com</Text>
       </View>

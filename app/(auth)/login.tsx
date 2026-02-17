@@ -11,6 +11,7 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -58,10 +59,11 @@ export default function LoginScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Ionicons name="speedometer" size={48} color={Colors.primary} />
-          </View>
-          <Text style={styles.title}>MyJantes</Text>
+          <Image
+            source={require("@/assets/images/logo.png")}
+            style={styles.logo}
+            contentFit="contain"
+          />
           <Text style={styles.subtitle}>Connectez-vous à votre compte</Text>
         </View>
 
@@ -151,20 +153,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 40,
   },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    backgroundColor: Colors.surfaceSecondary,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontFamily: "Inter_700Bold",
-    color: Colors.text,
-    marginBottom: 4,
+  logo: {
+    width: 220,
+    height: 100,
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: 15,
@@ -249,7 +241,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
   registerBtnPressed: {
-    backgroundColor: Colors.surfaceSecondary,
+    backgroundColor: Colors.surface,
   },
   registerBtnText: {
     color: Colors.primary,

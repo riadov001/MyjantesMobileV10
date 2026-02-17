@@ -9,6 +9,7 @@ import {
   Platform,
   ActivityIndicator,
 } from "react-native";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -62,9 +63,11 @@ export default function HomeScreen() {
             <Text style={styles.greeting}>{greeting}</Text>
             <Text style={styles.welcomeText}>Bienvenue sur MyJantes</Text>
           </View>
-          <View style={styles.avatarContainer}>
-            <Ionicons name="person" size={22} color={Colors.primary} />
-          </View>
+          <Image
+            source={require("@/assets/images/logo.png")}
+            style={styles.headerLogo}
+            contentFit="contain"
+          />
         </View>
 
         <Pressable
@@ -166,13 +169,9 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 2,
   },
-  avatarContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.surfaceSecondary,
-    justifyContent: "center",
-    alignItems: "center",
+  headerLogo: {
+    width: 90,
+    height: 40,
   },
   ctaCard: {
     backgroundColor: Colors.primary,

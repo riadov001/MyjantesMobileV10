@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,8 +9,8 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
-  Image,
 } from "react-native";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -24,7 +24,6 @@ import * as Haptics from "expo-haptics";
 interface UploadedPhoto {
   uri: string;
   key: string;
-  uploading: boolean;
 }
 
 export default function NewQuoteScreen() {
@@ -69,17 +68,11 @@ export default function NewQuoteScreen() {
       for (const asset of result.assets) {
         const filename = asset.fileName || `photo_${Date.now()}.jpg`;
         const type = asset.mimeType || "image/jpeg";
-
         try {
           const uploadResult = await uploadApi.upload(asset.uri, filename, type);
-          newPhotos.push({
-            uri: asset.uri,
-            key: uploadResult.objectPath,
-            uploading: false,
-          });
+          newPhotos.push({ uri: asset.uri, key: uploadResult.objectPath });
         } catch (err) {
           console.error("Upload error:", err);
-          Alert.alert("Erreur", `Impossible d'uploader ${filename}`);
         }
       }
 
@@ -95,25 +88,18 @@ export default function NewQuoteScreen() {
       return;
     }
 
-    const result = await ImagePicker.launchCameraAsync({
-      quality: 0.8,
-    });
+    const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
 
     if (!result.canceled && result.assets.length > 0) {
       setUploading(true);
       const asset = result.assets[0];
       const filename = asset.fileName || `photo_${Date.now()}.jpg`;
       const type = asset.mimeType || "image/jpeg";
-
       try {
         const uploadResult = await uploadApi.upload(asset.uri, filename, type);
-        setPhotos((prev) => [
-          ...prev,
-          { uri: asset.uri, key: uploadResult.objectPath, uploading: false },
-        ]);
+        setPhotos((prev) => [...prev, { uri: asset.uri, key: uploadResult.objectPath }]);
       } catch (err) {
         console.error("Upload error:", err);
-        Alert.alert("Erreur", "Impossible d'uploader la photo.");
       }
       setUploading(false);
     }
@@ -135,14 +121,12 @@ export default function NewQuoteScreen() {
 
     setSubmitting(true);
     try {
-      const quoteData = {
+      await quotesApi.create({
         services: selectedServices,
         notes: notes.trim() || undefined,
         photos: photos.map((p) => ({ key: p.key, type: "image/jpeg", name: "photo.jpg" })),
         paymentMethod: "wire_transfer",
-      };
-
-      await quotesApi.create(quoteData);
+      });
 
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -158,6 +142,8 @@ export default function NewQuoteScreen() {
       setSubmitting(false);
     }
   };
+
+  const canSubmit = selectedServices.length > 0 && photos.length >= 3 && !submitting;
 
   return (
     <View style={styles.container}>
@@ -238,11 +224,8 @@ export default function NewQuoteScreen() {
             {photos.map((photo, index) => (
               <View key={index} style={styles.photoItem}>
                 <Image source={{ uri: photo.uri }} style={styles.photoImage} />
-                <Pressable
-                  style={styles.photoRemoveBtn}
-                  onPress={() => removePhoto(index)}
-                >
-                  <Ionicons name="close-circle" size={22} color={Colors.error} />
+                <Pressable style={styles.photoRemoveBtn} onPress={() => removePhoto(index)}>
+                  <Ionicons name="close-circle" size={22} color={Colors.primary} />
                 </Pressable>
               </View>
             ))}
@@ -272,8 +255,8 @@ export default function NewQuoteScreen() {
             )}
           </View>
 
-          <Text style={styles.photoHint}>
-            {photos.length}/3 photos minimum ajoutées
+          <Text style={[styles.photoHint, photos.length >= 3 && styles.photoHintOk]}>
+            {photos.length >= 3 ? `${photos.length} photos ajoutées` : `${photos.length}/3 photos minimum`}
           </Text>
         </View>
 
@@ -318,13 +301,6 @@ export default function NewQuoteScreen() {
                 <Text style={styles.userInfoText}>{user.phone}</Text>
               </View>
             )}
-            {(!user?.firstName || !user?.phone) && (
-              <Pressable onPress={() => router.push("/(main)/(tabs)/profile")}>
-                <Text style={styles.completeProfileLink}>
-                  Compléter mon profil pour un traitement plus rapide
-                </Text>
-              </Pressable>
-            )}
           </View>
         </View>
       </ScrollView>
@@ -338,11 +314,11 @@ export default function NewQuoteScreen() {
         <Pressable
           style={({ pressed }) => [
             styles.submitBtn,
-            pressed && styles.submitBtnPressed,
-            (submitting || photos.length < 3 || selectedServices.length === 0) && styles.submitBtnDisabled,
+            pressed && canSubmit && styles.submitBtnPressed,
+            !canSubmit && styles.submitBtnDisabled,
           ]}
           onPress={handleSubmit}
-          disabled={submitting || photos.length < 3 || selectedServices.length === 0}
+          disabled={!canSubmit}
         >
           {submitting ? (
             <ActivityIndicator color="#fff" />
@@ -405,7 +381,7 @@ const styles = StyleSheet.create({
   required: {
     fontSize: 13,
     fontFamily: "Inter_400Regular",
-    color: Colors.error,
+    color: Colors.primary,
   },
   servicesContainer: {
     gap: 6,
@@ -421,7 +397,7 @@ const styles = StyleSheet.create({
   },
   serviceItemSelected: {
     borderColor: Colors.primary,
-    backgroundColor: `${Colors.primary}08`,
+    backgroundColor: `${Colors.primary}15`,
   },
   serviceCheck: {
     marginRight: 12,
@@ -463,7 +439,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 2,
     right: 2,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.background,
     borderRadius: 11,
   },
   photoPlaceholder: {
@@ -480,7 +456,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 10,
-    backgroundColor: Colors.surfaceSecondary,
+    backgroundColor: Colors.surface,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1.5,
@@ -489,7 +465,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   addPhotoBtnPressed: {
-    backgroundColor: Colors.border,
+    backgroundColor: Colors.surfaceSecondary,
   },
   addPhotoText: {
     fontSize: 11,
@@ -501,6 +477,9 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
     marginTop: 8,
+  },
+  photoHintOk: {
+    color: Colors.accepted,
   },
   notesInput: {
     backgroundColor: Colors.surface,
@@ -531,12 +510,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.text,
   },
-  completeProfileLink: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-    color: Colors.primary,
-    marginTop: 4,
-  },
   footer: {
     position: "absolute",
     bottom: 0,
@@ -561,7 +534,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primaryDark,
   },
   submitBtnDisabled: {
-    opacity: 0.5,
+    opacity: 0.4,
   },
   submitBtnText: {
     color: "#fff",

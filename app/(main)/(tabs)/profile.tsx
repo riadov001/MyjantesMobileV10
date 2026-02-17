@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Platform,
 } from "react-native";
+import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/lib/auth-context";
@@ -69,6 +70,7 @@ export default function ProfileScreen() {
         style: "destructive",
         onPress: async () => {
           await logout();
+          router.replace("/(auth)/login");
         },
       },
     ]);
@@ -79,11 +81,11 @@ export default function ProfileScreen() {
     value: string,
     setValue: (v: string) => void,
     icon: keyof typeof Ionicons.glyphMap,
-    opts: { keyboardType?: any; maxLength?: number } = {}
+    opts: { keyboardType?: any; maxLength?: number; editable?: boolean } = {}
   ) => (
     <View style={styles.fieldContainer}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      {editing ? (
+      {editing && opts.editable !== false ? (
         <View style={styles.fieldInputContainer}>
           <Ionicons name={icon} size={18} color={Colors.textSecondary} style={styles.fieldIcon} />
           <TextInput
@@ -99,7 +101,9 @@ export default function ProfileScreen() {
       ) : (
         <View style={styles.fieldValueRow}>
           <Ionicons name={icon} size={18} color={Colors.textSecondary} />
-          <Text style={styles.fieldValue}>{value || "Non renseigné"}</Text>
+          <Text style={[styles.fieldValue, !value && styles.fieldValueEmpty]}>
+            {value || "Non renseigné"}
+          </Text>
         </View>
       )}
     </View>
@@ -150,7 +154,7 @@ export default function ProfileScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Informations personnelles</Text>
-          {renderField("Email", user?.email || "", () => {}, "mail-outline")}
+          {renderField("Email", user?.email || "", () => {}, "mail-outline", { editable: false })}
           {renderField("Prénom", firstName, setFirstName, "person-outline")}
           {renderField("Nom", lastName, setLastName, "person-outline")}
           {renderField("Téléphone", phone, setPhone, "call-outline", { keyboardType: "phone-pad" })}
@@ -179,7 +183,7 @@ export default function ProfileScreen() {
           style={({ pressed }) => [styles.logoutBtn, pressed && styles.logoutBtnPressed]}
           onPress={handleLogout}
         >
-          <Ionicons name="log-out-outline" size={20} color={Colors.error} />
+          <Ionicons name="log-out-outline" size={20} color={Colors.primary} />
           <Text style={styles.logoutBtnText}>Déconnexion</Text>
         </Pressable>
       </ScrollView>
@@ -296,6 +300,9 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.text,
   },
+  fieldValueEmpty: {
+    color: Colors.textTertiary,
+  },
   cancelBtn: {
     alignItems: "center",
     marginBottom: 16,
@@ -313,7 +320,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.error,
+    borderColor: Colors.primary,
     marginTop: 8,
   },
   logoutBtnPressed: {
@@ -322,6 +329,6 @@ const styles = StyleSheet.create({
   logoutBtnText: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: Colors.error,
+    color: Colors.primary,
   },
 });

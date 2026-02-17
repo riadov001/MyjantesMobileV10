@@ -65,9 +65,7 @@ export default function SupportScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          {
-            paddingBottom: Platform.OS === "web" ? 34 + 20 : insets.bottom + 20,
-          },
+          { paddingBottom: Platform.OS === "web" ? 34 + 20 : insets.bottom + 20 },
         ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"

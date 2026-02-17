@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet, ScrollView, Platform, Linking } from "react-native";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,7 +21,7 @@ function MenuItem({ icon, title, subtitle, onPress, iconColor }: MenuItemProps) 
       style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
       onPress={onPress}
     >
-      <View style={[styles.menuIconContainer, iconColor ? { backgroundColor: `${iconColor}15` } : {}]}>
+      <View style={[styles.menuIconContainer, iconColor ? { backgroundColor: `${iconColor}20` } : {}]}>
         <Ionicons name={icon} size={20} color={iconColor || Colors.primary} />
       </View>
       <View style={styles.menuTextContainer}>
@@ -62,7 +63,7 @@ export default function MoreScreen() {
             title="Email"
             subtitle="contact@myjantes.com"
             onPress={() => Linking.openURL("mailto:contact@myjantes.com")}
-            iconColor="#10B981"
+            iconColor="#22C55E"
           />
         </View>
 
@@ -72,13 +73,13 @@ export default function MoreScreen() {
             icon="document-text-outline"
             title="Mentions légales"
             onPress={() => router.push("/legal")}
-            iconColor="#6366F1"
+            iconColor="#818CF8"
           />
           <MenuItem
             icon="shield-checkmark-outline"
             title="Politique de confidentialité"
             onPress={() => router.push("/privacy")}
-            iconColor="#8B5CF6"
+            iconColor="#A78BFA"
           />
         </View>
 
@@ -94,7 +95,11 @@ export default function MoreScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>MyJantes</Text>
+          <Image
+            source={require("@/assets/images/logo.png")}
+            style={styles.footerLogo}
+            contentFit="contain"
+          />
           <Text style={styles.footerSubtext}>Service de rénovation de jantes</Text>
         </View>
       </ScrollView>
@@ -170,10 +175,10 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingVertical: 20,
   },
-  footerText: {
-    fontSize: 16,
-    fontFamily: "Inter_700Bold",
-    color: Colors.textTertiary,
+  footerLogo: {
+    width: 140,
+    height: 60,
+    marginBottom: 6,
   },
   footerSubtext: {
     fontSize: 12,
