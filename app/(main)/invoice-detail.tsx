@@ -32,11 +32,12 @@ export default function InvoiceDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const { data: invoice, isLoading } = useQuery({
-    queryKey: ["invoices", id],
-    queryFn: () => invoicesApi.getById(id!),
-    enabled: !!id,
+  const { data: allInvoices = [], isLoading } = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoicesApi.getAll,
   });
+
+  const invoice = allInvoices.find((inv) => inv.id === id);
 
   if (isLoading) {
     return (
@@ -64,6 +65,8 @@ export default function InvoiceDetailScreen() {
     month: "long",
     year: "numeric",
   });
+
+  const invoiceItems = invoice.items || [];
 
   return (
     <View style={styles.container}>
@@ -135,13 +138,13 @@ export default function InvoiceDetailScreen() {
           </View>
         )}
 
-        {invoice.items && invoice.items.length > 0 && (
+        {invoiceItems.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="list-outline" size={18} color={Colors.primary} />
               <Text style={styles.sectionTitle}>Détail</Text>
             </View>
-            {invoice.items.map((item: any, idx: number) => (
+            {invoiceItems.map((item: any, idx: number) => (
               <View key={idx} style={styles.itemRow}>
                 <View style={styles.itemInfo}>
                   <Text style={styles.itemName}>{item.description || item.name || `Ligne ${idx + 1}`}</Text>
@@ -157,7 +160,7 @@ export default function InvoiceDetailScreen() {
           </View>
         )}
 
-        {invoice.notes && (
+        {invoice.notes ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
@@ -165,7 +168,7 @@ export default function InvoiceDetailScreen() {
             </View>
             <Text style={styles.notesText}>{invoice.notes}</Text>
           </View>
-        )}
+        ) : null}
       </ScrollView>
     </View>
   );

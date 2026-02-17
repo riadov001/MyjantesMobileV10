@@ -46,11 +46,12 @@ export default function QuoteDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const { data: quote, isLoading } = useQuery({
-    queryKey: ["quotes", id],
-    queryFn: () => quotesApi.getById(id!),
-    enabled: !!id,
+  const { data: allQuotes = [], isLoading } = useQuery({
+    queryKey: ["quotes"],
+    queryFn: quotesApi.getAll,
   });
+
+  const quote = allQuotes.find((q) => q.id === id);
 
   if (isLoading) {
     return (
@@ -83,6 +84,11 @@ export default function QuoteDetailScreen() {
   });
 
   const vehicleInfo = (quote as any).vehicleInfo;
+  const quoteItems = (quote as any).items || [];
+  const quoteServices = (quote as any).services || [];
+  const quotePhotos = (quote as any).photos || [];
+  const quoteNotes = (quote as any).notes || "";
+  const totalAmount = (quote as any).totalAmount || "0";
 
   return (
     <View style={styles.container}>
@@ -115,20 +121,20 @@ export default function QuoteDetailScreen() {
           <Text style={styles.quoteDate}>{formattedDate}</Text>
         </View>
 
-        {quote.totalAmount && parseFloat(quote.totalAmount) > 0 && (
+        {totalAmount && parseFloat(totalAmount) > 0 && (
           <View style={styles.amountCard}>
             <Text style={styles.amountLabel}>Montant total</Text>
-            <Text style={styles.amountValue}>{parseFloat(quote.totalAmount).toFixed(2)} €</Text>
+            <Text style={styles.amountValue}>{parseFloat(totalAmount).toFixed(2)} €</Text>
           </View>
         )}
 
-        {quote.items && quote.items.length > 0 && (
+        {quoteItems.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="list-outline" size={18} color={Colors.primary} />
               <Text style={styles.sectionTitle}>Détail des prestations</Text>
             </View>
-            {quote.items.map((item: any, idx: number) => (
+            {quoteItems.map((item: any, idx: number) => (
               <View key={idx} style={styles.itemRow}>
                 <View style={styles.itemInfo}>
                   <Text style={styles.itemName}>{item.description || item.name || `Prestation ${idx + 1}`}</Text>
@@ -144,24 +150,27 @@ export default function QuoteDetailScreen() {
           </View>
         )}
 
-        {quote.services && quote.services.length > 0 && (
+        {quoteServices.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="construct-outline" size={18} color={Colors.primary} />
               <Text style={styles.sectionTitle}>Services demandés</Text>
             </View>
-            {quote.services.map((service: any, idx: number) => (
-              <View key={idx} style={styles.serviceRow}>
-                <View style={styles.serviceIcon}>
-                  <Ionicons name="checkmark" size={14} color={Colors.primary} />
+            {quoteServices.map((service: any, idx: number) => {
+              const serviceName = typeof service === "string" ? service : service?.name || service?.id || `Service ${idx + 1}`;
+              return (
+                <View key={idx} style={styles.serviceRow}>
+                  <View style={styles.serviceIcon}>
+                    <Ionicons name="checkmark" size={14} color={Colors.primary} />
+                  </View>
+                  <Text style={styles.serviceName}>{serviceName}</Text>
                 </View>
-                <Text style={styles.serviceName}>{service.name || service}</Text>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )}
 
-        {vehicleInfo && Object.keys(vehicleInfo).length > 0 && (
+        {vehicleInfo && typeof vehicleInfo === "object" && Object.keys(vehicleInfo).length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="car-outline" size={18} color={Colors.primary} />
@@ -176,14 +185,14 @@ export default function QuoteDetailScreen() {
           </View>
         )}
 
-        {quote.photos && quote.photos.length > 0 && (
+        {quotePhotos.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="images-outline" size={18} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>Photos ({quote.photos.length})</Text>
+              <Text style={styles.sectionTitle}>Photos ({quotePhotos.length})</Text>
             </View>
             <View style={styles.photosGrid}>
-              {quote.photos.map((photo: any, idx: number) => (
+              {quotePhotos.map((photo: any, idx: number) => (
                 <View key={idx} style={styles.photoThumb}>
                   <Ionicons name="image" size={24} color={Colors.textTertiary} />
                   <Text style={styles.photoLabel}>Photo {idx + 1}</Text>
@@ -193,15 +202,15 @@ export default function QuoteDetailScreen() {
           </View>
         )}
 
-        {quote.notes && (
+        {quoteNotes ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
               <Text style={styles.sectionTitle}>Notes</Text>
             </View>
-            <Text style={styles.notesText}>{quote.notes}</Text>
+            <Text style={styles.notesText}>{quoteNotes}</Text>
           </View>
-        )}
+        ) : null}
       </ScrollView>
     </View>
   );

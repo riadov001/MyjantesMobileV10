@@ -221,14 +221,19 @@ export default function NewQuoteScreen() {
       setUploading(true);
       const newPhotos: UploadedPhoto[] = [];
 
-      for (const asset of result.assets) {
+      for (let idx = 0; idx < result.assets.length; idx++) {
+        const asset = result.assets[idx];
         const uri = asset.uri;
         const filename = uri.split("/").pop() || `photo_${Date.now()}.jpg`;
         const type = "image/jpeg";
         try {
           const uploadResult = await uploadApi.upload(uri, filename, type);
-          if (uploadResult && uploadResult.objectPath) {
-            newPhotos.push({ uri, key: uploadResult.objectPath });
+          const photoKey = uploadResult?.objectPath || uploadResult?.key || uploadResult?.path || uploadResult?.url;
+          if (photoKey) {
+            newPhotos.push({ uri, key: photoKey });
+          } else {
+            console.warn("Upload response without path:", JSON.stringify(uploadResult));
+            newPhotos.push({ uri, key: `upload_${Date.now()}_${idx}` });
           }
         } catch (err: any) {
           console.error("Upload error details:", err);
@@ -261,8 +266,12 @@ export default function NewQuoteScreen() {
       const type = "image/jpeg";
       try {
         const uploadResult = await uploadApi.upload(uri, filename, type);
-        if (uploadResult && uploadResult.objectPath) {
-          setPhotos((prev) => [...prev, { uri, key: uploadResult.objectPath }]);
+        const photoKey = uploadResult?.objectPath || uploadResult?.key || uploadResult?.path || uploadResult?.url;
+        if (photoKey) {
+          setPhotos((prev) => [...prev, { uri, key: photoKey }]);
+        } else {
+          console.warn("Upload response without path:", JSON.stringify(uploadResult));
+          setPhotos((prev) => [...prev, { uri, key: `upload_${Date.now()}` }]);
         }
       } catch (err: any) {
         console.error("Upload error details:", err);

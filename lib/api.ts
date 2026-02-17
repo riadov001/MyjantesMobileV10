@@ -61,18 +61,28 @@ export async function apiCall<T = any>(
   if (!res.ok) {
     let errorMessage = `Erreur ${res.status}`;
     try {
-      const errorData = await res.json();
-      errorMessage = errorData.message || errorMessage;
+      const text = await res.text();
+      try {
+        const errorData = JSON.parse(text);
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch {
+        if (text) errorMessage = text.substring(0, 200);
+      }
     } catch {}
     throw new Error(errorMessage);
   }
 
-  const contentType = res.headers.get("content-type");
-  if (contentType?.includes("application/json")) {
-    return res.json() as Promise<T>;
+  try {
+    const text = await res.text();
+    if (!text || text.trim() === "") return {} as T;
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      return {} as T;
+    }
+  } catch {
+    return {} as T;
   }
-
-  return {} as T;
 }
 
 export interface UserProfile {
@@ -250,20 +260,21 @@ export const reservationsApi = {
 export const uploadApi = {
   upload: async (uri: string, filename: string, type: string) => {
     const formData = new FormData();
-    
-    // Ensure the URI is correctly formatted for the platform
-    const cleanUri = Platform.OS === "ios" ? uri.replace("file://", "") : uri;
-    
-    const fileToUpload = {
-      uri: cleanUri,
-      name: filename,
-      type: type,
-    };
-    
-    // @ts-ignore
-    formData.append("media", fileToUpload);
 
-    return apiCall<{ objectPath: string }>("/api/upload", {
+    if (Platform.OS === "web") {
+      const response = await globalThis.fetch(uri);
+      const blob = await response.blob();
+      formData.append("media", blob, filename);
+    } else {
+      const fileToUpload = {
+        uri: uri,
+        name: filename,
+        type: type,
+      } as any;
+      formData.append("media", fileToUpload);
+    }
+
+    return apiCall<{ objectPath: string; url?: string; key?: string; path?: string }>("/api/upload", {
       method: "POST",
       body: formData,
       isFormData: true,
