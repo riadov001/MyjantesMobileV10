@@ -44,7 +44,7 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      style={[styles.flex, { backgroundColor: "#FFFFFF" }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
@@ -53,6 +53,7 @@ export default function LoginScreen() {
           {
             paddingTop: Platform.OS === "web" ? 67 + 40 : insets.top + 40,
             paddingBottom: Platform.OS === "web" ? 34 + 20 : insets.bottom + 20,
+            backgroundColor: "#FFFFFF",
           },
         ]}
         keyboardShouldPersistTaps="handled"
@@ -163,19 +164,11 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logoWrapper: {
-    width: 200,
-    height: 100,
-    backgroundColor: "#000000",
-    borderRadius: 20,
-    padding: 8,
+    width: 240,
+    height: 120,
     marginBottom: 16,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
   },
   logo: {
     width: "100%",
@@ -184,7 +177,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
+    color: "#4B5563",
   },
   form: {
     gap: 16,
@@ -195,16 +188,16 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
-    color: Colors.text,
+    color: "#000000",
     marginLeft: 4,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.surface,
+    backgroundColor: "#F9FAFB",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: "#E5E7EB",
     paddingHorizontal: 12,
     height: 52,
   },
@@ -215,7 +208,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontFamily: "Inter_400Regular",
-    color: Colors.text,
+    color: "#000000",
     height: "100%",
   },
   eyeBtn: {
@@ -261,13 +254,13 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: Colors.border,
+    backgroundColor: "#E5E7EB",
   },
   dividerText: {
     marginHorizontal: 16,
     fontSize: 14,
     fontFamily: "Inter_400Regular",
-    color: Colors.textTertiary,
+    color: "#6B7280",
   },
   registerBtn: {
     borderRadius: 12,
