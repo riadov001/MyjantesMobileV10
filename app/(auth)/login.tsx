@@ -108,6 +108,9 @@ export default function LoginScreen() {
                 />
               </Pressable>
             </View>
+            <Pressable onPress={() => router.push("/(auth)/forgot-password")} style={styles.forgotBtn}>
+              <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
+            </Pressable>
           </View>
 
           <Pressable
@@ -160,11 +163,11 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logoWrapper: {
-    width: 120,
-    height: 120,
+    width: 280,
+    height: 140,
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
-    padding: 4,
+    padding: 15,
     marginBottom: 16,
     justifyContent: "center",
     alignItems: "center",
@@ -177,7 +180,6 @@ const styles = StyleSheet.create({
   logo: {
     width: "100%",
     height: "100%",
-    borderRadius: 20,
   },
   subtitle: {
     fontSize: 15,
@@ -214,9 +216,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Inter_400Regular",
     color: Colors.text,
+    paddingRight: 8,
   },
   eyeBtn: {
-    padding: 4,
+    padding: 8,
+    marginRight: -4,
+  },
+  forgotBtn: {
+    alignSelf: "flex-end",
+    marginTop: 4,
+    paddingVertical: 4,
+  },
+  forgotText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primary,
   },
   loginBtn: {
     backgroundColor: Colors.primary,

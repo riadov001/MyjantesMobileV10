@@ -97,11 +97,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logoWrapper: {
-    width: 160,
-    height: 160,
+    width: 320,
+    height: 180,
     backgroundColor: "#FFFFFF",
     borderRadius: 32,
-    padding: 6,
+    padding: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
@@ -111,7 +111,6 @@ const styles = StyleSheet.create({
   splashLogo: {
     width: "100%",
     height: "100%",
-    borderRadius: 26,
   },
   versionBottom: {
     position: "absolute",
