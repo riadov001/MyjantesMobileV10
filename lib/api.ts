@@ -1,4 +1,4 @@
-import { fetch } from "expo/fetch";
+import { fetch as expoFetch } from "expo/fetch";
 import { Platform } from "react-native";
 
 const API_BASE = "https://appmyjantes.mytoolsgroup.eu";
@@ -32,21 +32,26 @@ export async function apiCall<T = any>(
 
   if (!isFormData && body) {
     fetchHeaders["Content-Type"] = "application/json";
-  } else if (isFormData) {
-    // Ensure no Content-Type is set for FormData to let fetch handle boundaries
-    delete fetchHeaders["Content-Type"];
   }
 
   if (sessionCookie) {
     fetchHeaders["Cookie"] = sessionCookie;
   }
 
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  const fetchFn = isFormData ? globalThis.fetch : expoFetch;
+
+  const fetchOptions: any = {
     method,
-    headers: fetchHeaders,
+    headers: isFormData ? { Cookie: fetchHeaders["Cookie"] || "" } : fetchHeaders,
     body: isFormData ? body : body ? JSON.stringify(body) : undefined,
-    credentials: "include",
-  });
+    credentials: "include" as const,
+  };
+
+  if (isFormData && !fetchOptions.headers.Cookie) {
+    delete fetchOptions.headers.Cookie;
+  }
+
+  const res = await fetchFn(`${API_BASE}${endpoint}`, fetchOptions);
 
   const setCookie = res.headers.get("set-cookie");
   if (setCookie) {
@@ -190,14 +195,56 @@ export const servicesApi = {
   getAll: () => apiCall<Service[]>("/api/services"),
 };
 
+export interface Invoice {
+  id: string;
+  quoteId: string | null;
+  clientId: string;
+  invoiceNumber: string;
+  status: string;
+  totalHT: string;
+  totalTTC: string;
+  tvaAmount: string;
+  tvaRate: string;
+  dueDate: string | null;
+  paidAt: string | null;
+  items: any[];
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Reservation {
+  id: string;
+  clientId: string;
+  quoteId: string | null;
+  date: string;
+  timeSlot: string | null;
+  status: string;
+  notes: string | null;
+  vehicleInfo: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const quotesApi = {
   getAll: () => apiCall<Quote[]>("/api/quotes"),
+  getById: (id: string) => apiCall<Quote>(`/api/quotes/${id}`),
 
   create: (data: any) =>
     apiCall<Quote>("/api/quotes", {
       method: "POST",
       body: data,
     }),
+};
+
+export const invoicesApi = {
+  getAll: () => apiCall<Invoice[]>("/api/invoices"),
+  getById: (id: string) => apiCall<Invoice>(`/api/invoices/${id}`),
+};
+
+export const reservationsApi = {
+  getAll: () => apiCall<Reservation[]>("/api/reservations"),
+  getById: (id: string) => apiCall<Reservation>(`/api/reservations/${id}`),
 };
 
 export const uploadApi = {
