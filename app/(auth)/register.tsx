@@ -426,11 +426,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "Inter_400Regular",
     color: Colors.text,
-    paddingRight: 8,
   },
   eyeBtn: {
-    padding: 8,
-    marginRight: -4,
+    padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
   },
   row: {
     flexDirection: "row",

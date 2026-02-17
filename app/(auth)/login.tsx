@@ -143,7 +143,7 @@ export default function LoginScreen() {
           </Pressable>
 
           <View style={styles.versionContainer}>
-            <Text style={styles.versionText}>v1.0.0</Text>
+            <Text style={styles.versionText}>v1.3.6</Text>
           </View>
         </View>
       </ScrollView>
@@ -216,11 +216,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Inter_400Regular",
     color: Colors.text,
-    paddingRight: 8,
   },
   eyeBtn: {
-    padding: 8,
-    marginRight: -4,
+    padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
   },
   forgotBtn: {
     alignSelf: "flex-end",
