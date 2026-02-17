@@ -40,9 +40,14 @@ export default function RegisterScreen() {
   const [companyCity, setCompanyCity] = useState("");
   const [companyCountry, setCompanyCountry] = useState("France");
   const [showPassword, setShowPassword] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
+    if (!agreeTerms) {
+      Alert.alert("Consentement requis", "Veuillez accepter les mentions légales et la politique de confidentialité.");
+      return;
+    }
     if (!email.trim() || !password.trim()) {
       Alert.alert("Erreur", "Email et mot de passe sont obligatoires.");
       return;
@@ -304,6 +309,24 @@ export default function RegisterScreen() {
           </View>
         </View>
 
+        <View style={styles.consentSection}>
+          <Pressable 
+            style={styles.checkboxContainer} 
+            onPress={() => setAgreeTerms(!agreeTerms)}
+          >
+            <View style={[styles.checkbox, agreeTerms && styles.checkboxChecked]}>
+              {agreeTerms && <Ionicons name="checkmark" size={14} color="#fff" />}
+            </View>
+            <Text style={styles.consentText}>
+              J'ai lu et j'accepte les{" "}
+              <Text style={styles.link} onPress={() => router.push("/legal")}>mentions légales</Text>
+              {" "}et la{" "}
+              <Text style={styles.link} onPress={() => router.push("/privacy")}>politique de confidentialité</Text>.
+              Je reconnais être informé que les prochaines versions incluront le paiement Stripe.
+            </Text>
+          </Pressable>
+        </View>
+
         <Pressable
           style={({ pressed }) => [
             styles.registerBtn,
@@ -466,5 +489,39 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter_500Medium",
     color: Colors.primary,
+  },
+  consentSection: {
+    marginVertical: 20,
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "flex-start",
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  checkboxChecked: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  consentText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
+  link: {
+    color: Colors.primary,
+    textDecorationLine: "underline",
   },
 });

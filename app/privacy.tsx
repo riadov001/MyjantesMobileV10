@@ -76,17 +76,24 @@ export default function PrivacyScreen() {
         </Text>
         <Text style={styles.bullet}>- Droit d'accès à vos données personnelles</Text>
         <Text style={styles.bullet}>- Droit de rectification de vos données</Text>
-        <Text style={styles.bullet}>- Droit à l'effacement de vos données</Text>
+        <Text style={styles.bullet}>- Droit à l'effacement de vos données (Droit à l'oubli)</Text>
         <Text style={styles.bullet}>- Droit à la limitation du traitement</Text>
         <Text style={styles.bullet}>- Droit à la portabilité de vos données</Text>
         <Text style={styles.bullet}>- Droit d'opposition au traitement</Text>
         <Text style={styles.text}>
-          Pour exercer ces droits, contactez-nous à : contact@myjantes.com
+          Pour exercer vos droits, notamment la suppression de vos données, contactez-nous à : contact@myjantes.com ou via le bouton de suppression dans votre profil.
         </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>8. Cookies</Text>
+        <Text style={styles.sectionTitle}>8. Évolutions à venir</Text>
+        <Text style={styles.text}>
+          Nous prévoyons d'intégrer prochainement le paiement en ligne sécurisé via Stripe pour le règlement de vos factures directement depuis l'application.
+        </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>9. Cookies</Text>
         <Text style={styles.text}>
           L'application utilise des cookies de session nécessaires à son bon fonctionnement. Ces cookies sont indispensables à la navigation et ne peuvent pas être désactivés.
         </Text>

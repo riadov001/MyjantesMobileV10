@@ -88,7 +88,7 @@ export default function MoreScreen() {
           <MenuItem
             icon="information-circle-outline"
             title="Version"
-            subtitle="1.0.0"
+            subtitle="1.3.6"
             onPress={() => {}}
             iconColor={Colors.textSecondary}
           />
