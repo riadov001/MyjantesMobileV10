@@ -206,9 +206,9 @@ export const uploadApi = {
       uri: Platform.OS === "ios" ? uri.replace("file://", "") : uri,
       name: filename,
       type: type,
-    } as any;
+    };
     
-    formData.append("media", fileToUpload);
+    formData.append("media", fileToUpload as any);
 
     return apiCall<{ objectPath: string }>("/api/upload", {
       method: "POST",
@@ -399,11 +399,13 @@ export const supportApi = {
 export const ocrApi = {
   scan: async (uri: string, filename: string, type: string) => {
     const formData = new FormData();
-    formData.append("image", {
-      uri,
+    const fileToScan = {
+      uri: Platform.OS === "ios" ? uri.replace("file://", "") : uri,
       name: filename,
-      type,
-    } as any);
+      type: type,
+    };
+    
+    formData.append("image", fileToScan as any);
 
     return apiCall<any>("/api/ocr/scan", {
       method: "POST",

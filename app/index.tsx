@@ -12,7 +12,7 @@ export default function IndexScreen() {
     if (!isLoading) {
       const timer = setTimeout(() => {
         if (isAuthenticated) {
-          router.replace("/(main)");
+          router.replace("/(main)" as any);
         } else {
           router.replace("/(auth)/login");
         }

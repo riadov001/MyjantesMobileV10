@@ -163,6 +163,7 @@ export default function NewQuoteScreen() {
       setScannedImageUri(uri);
 
       const ocrResult = await ocrApi.scan(uri, filename, "image/jpeg");
+      console.log("OCR Result:", ocrResult);
       const parsed = parseOcrResult(ocrResult);
 
       const hasData = Object.values(parsed).some((v) => v.trim() !== "");
