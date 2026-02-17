@@ -1,0 +1,96 @@
+import React from "react";
+import { View, Text, ScrollView, StyleSheet, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Colors from "@/constants/colors";
+
+export default function LegalScreen() {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.content,
+        { paddingBottom: Platform.OS === "web" ? 34 + 40 : insets.bottom + 40 },
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.heading}>Mentions Légales</Text>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>1. Éditeur du site et de l'application</Text>
+        <Text style={styles.text}>
+          L'application mobile MyJantes est éditée par la société MyJantes, spécialisée dans la rénovation et la personnalisation de jantes automobiles.
+        </Text>
+        <Text style={styles.text}>Email : contact@myjantes.com</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>2. Hébergement</Text>
+        <Text style={styles.text}>
+          L'application et les données associées sont hébergées par des prestataires professionnels garantissant la sécurité et la disponibilité des services.
+        </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>3. Propriété intellectuelle</Text>
+        <Text style={styles.text}>
+          L'ensemble des éléments constituant l'application MyJantes (textes, images, logos, icônes, sons, logiciels, etc.) sont la propriété exclusive de MyJantes ou de ses partenaires. Toute reproduction, représentation, modification, publication, adaptation de tout ou partie des éléments de l'application, quel que soit le moyen ou le procédé utilisé, est interdite, sauf autorisation écrite préalable de MyJantes.
+        </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>4. Limitation de responsabilité</Text>
+        <Text style={styles.text}>
+          MyJantes s'efforce de fournir des informations aussi précises que possible. Toutefois, elle ne pourra être tenue responsable des omissions, des inexactitudes et des carences dans la mise à jour, qu'elles soient de son fait ou du fait des tiers partenaires qui lui fournissent ces informations.
+        </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>5. Droit applicable</Text>
+        <Text style={styles.text}>
+          Les présentes mentions légales sont régies par le droit français. En cas de litige, les tribunaux français seront seuls compétents.
+        </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>6. Contact</Text>
+        <Text style={styles.text}>
+          Pour toute question relative aux mentions légales, vous pouvez nous contacter à l'adresse : contact@myjantes.com
+        </Text>
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  content: {
+    padding: 20,
+  },
+  heading: {
+    fontSize: 22,
+    fontFamily: "Inter_700Bold",
+    color: Colors.text,
+    marginBottom: 20,
+  },
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  text: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 22,
+    marginBottom: 4,
+  },
+});

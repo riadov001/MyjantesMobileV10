@@ -1,30 +1,35 @@
 {
   "expo": {
-    "name": "My App",
-    "slug": "my-app",
+    "name": "MyJantes",
+    "slug": "myjantes",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "myjantes",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0F1B2D"
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.myapp"
+      "bundleIdentifier": "com.myjantes.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "MyJantes a besoin de votre caméra pour prendre des photos de vos jantes.",
+        "NSPhotoLibraryUsageDescription": "MyJantes a besoin d'accéder à votre galerie pour sélectionner des photos de vos jantes."
+      }
     },
     "android": {
-      "package": "com.myapp",
+      "package": "com.myjantes.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0F1B2D",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
-      }
+      },
+      "permissions": ["android.permission.CAMERA", "android.permission.READ_EXTERNAL_STORAGE"]
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -37,7 +42,20 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "MyJantes a besoin de votre caméra pour prendre des photos de vos jantes."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "MyJantes a besoin d'accéder à votre galerie pour sélectionner des photos de vos jantes."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

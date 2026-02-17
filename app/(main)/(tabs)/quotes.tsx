@@ -1,0 +1,290 @@
+import React, { useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  Platform,
+  ActivityIndicator,
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
+import { quotesApi, Quote } from "@/lib/api";
+import Colors from "@/constants/colors";
+import { FloatingSupport } from "@/components/FloatingSupport";
+
+function getStatusInfo(status: string) {
+  const s = status?.toLowerCase() || "";
+  if (s === "pending" || s === "en_attente") {
+    return { label: "En attente", color: Colors.pending, bg: Colors.pendingBg, icon: "time-outline" as const };
+  }
+  if (s === "accepted" || s === "accepté" || s === "approved") {
+    return { label: "Accepté", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-circle-outline" as const };
+  }
+  if (s === "rejected" || s === "refusé" || s === "refused") {
+    return { label: "Refusé", color: Colors.rejected, bg: Colors.rejectedBg, icon: "close-circle-outline" as const };
+  }
+  if (s === "completed" || s === "terminé") {
+    return { label: "Terminé", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-done-outline" as const };
+  }
+  return { label: status || "Inconnu", color: Colors.textSecondary, bg: Colors.surfaceSecondary, icon: "help-outline" as const };
+}
+
+function QuoteCard({ quote }: { quote: Quote }) {
+  const statusInfo = getStatusInfo(quote.status);
+  const date = new Date(quote.createdAt);
+  const formattedDate = date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  return (
+    <View style={styles.quoteCard}>
+      <View style={styles.quoteHeader}>
+        <View style={styles.quoteIdRow}>
+          <Ionicons name="document-text" size={18} color={Colors.primary} />
+          <Text style={styles.quoteId}>Devis #{quote.id.slice(0, 8)}</Text>
+        </View>
+        <View style={[styles.statusBadge, { backgroundColor: statusInfo.bg }]}>
+          <Ionicons name={statusInfo.icon} size={14} color={statusInfo.color} />
+          <Text style={[styles.statusText, { color: statusInfo.color }]}>{statusInfo.label}</Text>
+        </View>
+      </View>
+
+      <View style={styles.quoteDetails}>
+        <View style={styles.detailRow}>
+          <Ionicons name="calendar-outline" size={16} color={Colors.textSecondary} />
+          <Text style={styles.detailText}>{formattedDate}</Text>
+        </View>
+        {quote.totalAmount && parseFloat(quote.totalAmount) > 0 && (
+          <View style={styles.detailRow}>
+            <Ionicons name="pricetag-outline" size={16} color={Colors.textSecondary} />
+            <Text style={styles.detailText}>{parseFloat(quote.totalAmount).toFixed(2)} €</Text>
+          </View>
+        )}
+        {quote.notes && (
+          <View style={styles.detailRow}>
+            <Ionicons name="chatbubble-outline" size={16} color={Colors.textSecondary} />
+            <Text style={styles.detailText} numberOfLines={2}>{quote.notes}</Text>
+          </View>
+        )}
+      </View>
+
+      {quote.photos && quote.photos.length > 0 && (
+        <View style={styles.photosInfo}>
+          <Ionicons name="images-outline" size={14} color={Colors.textTertiary} />
+          <Text style={styles.photosText}>{quote.photos.length} photo(s)</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+export default function QuotesScreen() {
+  const insets = useSafeAreaInsets();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { data: quotes = [], isLoading, refetch } = useQuery({
+    queryKey: ["quotes"],
+    queryFn: quotesApi.getAll,
+  });
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <View
+        style={[
+          styles.headerContainer,
+          { paddingTop: Platform.OS === "web" ? 67 + 8 : insets.top + 8 },
+        ]}
+      >
+        <Text style={styles.headerTitle}>Mes Devis</Text>
+        <Pressable
+          style={({ pressed }) => [styles.addBtn, pressed && styles.addBtnPressed]}
+          onPress={() => router.push("/(main)/new-quote")}
+        >
+          <Ionicons name="add" size={22} color="#fff" />
+        </Pressable>
+      </View>
+
+      {isLoading ? (
+        <ActivityIndicator size="large" color={Colors.primary} style={styles.loader} />
+      ) : (
+        <FlatList
+          data={quotes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <QuoteCard quote={item} />}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: Platform.OS === "web" ? 34 + 100 : insets.bottom + 100 },
+          ]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="document-text-outline" size={48} color={Colors.textTertiary} />
+              <Text style={styles.emptyTitle}>Aucun devis</Text>
+              <Text style={styles.emptyText}>
+                Vous n'avez pas encore de demande de devis.
+              </Text>
+              <Pressable
+                style={({ pressed }) => [styles.emptyCta, pressed && styles.emptyCtaPressed]}
+                onPress={() => router.push("/(main)/new-quote")}
+              >
+                <Text style={styles.emptyCtaText}>Demander un devis</Text>
+              </Pressable>
+            </View>
+          }
+        />
+      )}
+      <FloatingSupport />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+  },
+  headerTitle: {
+    fontSize: 26,
+    fontFamily: "Inter_700Bold",
+    color: Colors.text,
+  },
+  addBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: Colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  addBtnPressed: {
+    backgroundColor: Colors.primaryDark,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    gap: 12,
+  },
+  quoteCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: 12,
+  },
+  quoteHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  quoteIdRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  quoteId: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
+  },
+  statusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  statusText: {
+    fontSize: 12,
+    fontFamily: "Inter_600SemiBold",
+  },
+  quoteDetails: {
+    gap: 6,
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  detailText: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    flex: 1,
+  },
+  photosInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderLight,
+  },
+  photosText: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 80,
+    gap: 8,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
+    marginTop: 8,
+  },
+  emptyText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    textAlign: "center",
+    paddingHorizontal: 40,
+  },
+  emptyCta: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginTop: 12,
+  },
+  emptyCtaPressed: {
+    backgroundColor: Colors.primaryDark,
+  },
+  emptyCtaText: {
+    color: "#fff",
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+  },
+});
