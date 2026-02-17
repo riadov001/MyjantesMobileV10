@@ -17,7 +17,9 @@ export default function IndexScreen() {
           router.replace("/(auth)/login");
         }
       }, 1500);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+      };
     }
   }, [isLoading, isAuthenticated]);
 
@@ -44,11 +46,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   logoWrapper: {
-    width: 160,
-    height: 160,
+    width: 240,
+    height: 120,
     backgroundColor: "#000000",
-    borderRadius: 32,
-    padding: 15,
+    borderRadius: 24,
+    padding: 10,
     marginBottom: 24,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },

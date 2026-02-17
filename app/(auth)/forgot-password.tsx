@@ -155,6 +155,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Inter_400Regular",
     color: Colors.text,
+    height: "100%",
   },
   resetBtn: {
     backgroundColor: Colors.primary,

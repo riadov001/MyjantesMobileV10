@@ -449,9 +449,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "Inter_400Regular",
     color: Colors.text,
+    height: "100%",
   },
   eyeBtn: {
-    padding: 10,
+    height: "100%",
+    width: 44,
     justifyContent: "center",
     alignItems: "center",
   },

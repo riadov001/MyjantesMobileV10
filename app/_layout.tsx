@@ -97,10 +97,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logoWrapper: {
-    width: 180,
-    height: 180,
+    width: 240,
+    height: 120,
     backgroundColor: "#000000",
-    borderRadius: 32,
+    borderRadius: 24,
     padding: 15,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
