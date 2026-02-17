@@ -27,6 +27,29 @@ Base URL: `https://appmyjantes.mytoolsgroup.eu`
 ### Roles utilisateur
 - `client` - Particulier
 - `client_professionnel` - Professionnel (+ infos société)
+- `admin` - Administrateur (gestion complète)
+- `super_admin` - Super administrateur (+ gestion garages)
+
+### Endpoints Admin (auth admin/super_admin requise)
+- Devis: `GET/PUT/DELETE /api/admin/quotes/:id`
+- Factures: `GET/POST/PUT/DELETE /api/admin/invoices/:id`, `POST /api/admin/invoices/direct`
+- Clients: `GET/POST/PUT/DELETE /api/admin/clients/:id`
+- Services: `GET/POST/PUT/DELETE /api/admin/services/:id`
+- Utilisateurs: `GET/PUT/DELETE /api/admin/users/:id`
+- Réservations: `GET/POST/PUT/DELETE /api/admin/reservations/:id`
+- Paiements: `GET /api/admin/payments`, `POST /api/admin/payment/generate-link`
+- Analytics: `GET /api/admin/analytics`
+- Paramètres: `GET/PUT /api/admin/settings`, `GET/PUT /api/admin/garage-legal`
+- Comptabilité: profit-loss, tva-report, cash-flow, entries, fec-export
+- Ordres de réparation: `GET/POST/PUT /api/admin/repair-orders/:id`
+- Avoirs: `GET/POST /api/admin/credit-notes/:id`
+- Bons de livraison: `GET/POST /api/admin/delivery-notes/:id`
+- Dépenses: `GET/POST/PUT/DELETE /api/admin/expenses/:id`
+- Avis: `GET/PUT/DELETE /api/admin/reviews/:id`
+- Exports: `POST /api/admin/export-data`, `POST /api/admin/export-database`
+- Logs audit: `GET /api/admin/audit-logs`
+- Engagements: `GET/POST/PUT /api/admin/engagements/:id`
+- Super Admin garages: `GET/POST/PUT/DELETE /api/superadmin/garages/:id`
 
 ## Structure du projet
 ```
@@ -61,8 +84,12 @@ lib/
 ## User Preferences
 - Language: Français
 - Interface entièrement en français
-- Design professionnel automobile (bleu primaire)
+- Design professionnel automobile (thème sombre: noir #0A0A0A, rouge #DC2626, blanc)
 - Font: Inter (Google Fonts)
+- Logo: cropped-Logo-2-1-768x543 intégré dans l'app
 
 ## Recent Changes
 - Feb 2026: Initial build of MyJantes mobile app
+- Feb 2026: Thème sombre complet (noir/rouge/blanc)
+- Feb 2026: Section informations véhicule + scan OCR carte grise dans formulaire devis
+- Feb 2026: API admin/super_admin complètes intégrées dans lib/api.ts
