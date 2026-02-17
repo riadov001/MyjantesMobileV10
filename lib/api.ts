@@ -32,6 +32,9 @@ export async function apiCall<T = any>(
 
   if (!isFormData && body) {
     fetchHeaders["Content-Type"] = "application/json";
+  } else if (isFormData) {
+    // Ensure no Content-Type is set for FormData to let fetch handle boundaries
+    delete fetchHeaders["Content-Type"];
   }
 
   if (sessionCookie) {
@@ -200,10 +203,12 @@ export const quotesApi = {
 export const uploadApi = {
   upload: async (uri: string, filename: string, type: string) => {
     const formData = new FormData();
-    // In React Native, we need to handle the file object differently for FormData
-    // using the 'any' cast for the object containing uri, name, and type
+    
+    // Ensure the URI is correctly formatted for the platform
+    const cleanUri = Platform.OS === "ios" ? uri.replace("file://", "") : uri;
+    
     const fileToUpload = {
-      uri: uri,
+      uri: cleanUri,
       name: filename,
       type: type,
     };
@@ -400,8 +405,11 @@ export const supportApi = {
 export const ocrApi = {
   scan: async (uri: string, filename: string, type: string) => {
     const formData = new FormData();
+    
+    const cleanUri = Platform.OS === "ios" ? uri.replace("file://", "") : uri;
+    
     const fileToScan = {
-      uri: uri,
+      uri: cleanUri,
       name: filename,
       type: type,
     };
