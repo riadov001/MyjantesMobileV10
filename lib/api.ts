@@ -1,4 +1,5 @@
 import { fetch } from "expo/fetch";
+import { Platform } from "react-native";
 
 const API_BASE = "https://appmyjantes.mytoolsgroup.eu";
 
@@ -196,11 +197,15 @@ export const quotesApi = {
 export const uploadApi = {
   upload: async (uri: string, filename: string, type: string) => {
     const formData = new FormData();
-    formData.append("media", {
-      uri,
+    // In React Native, we need to handle the file object differently for FormData
+    // using the 'any' cast for the object containing uri, name, and type
+    const fileToUpload = {
+      uri: Platform.OS === "ios" ? uri.replace("file://", "") : uri,
       name: filename,
-      type,
-    } as any);
+      type: type,
+    } as any;
+    
+    formData.append("media", fileToUpload);
 
     return apiCall<{ objectPath: string }>("/api/upload", {
       method: "POST",

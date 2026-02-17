@@ -54,10 +54,16 @@ export default function NewQuoteScreen() {
   };
 
   const pickImages = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission requise", "Veuillez autoriser l'accès à votre galerie.");
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
-      quality: 0.8,
+      quality: 0.7,
       selectionLimit: 10,
     });
 
@@ -66,13 +72,17 @@ export default function NewQuoteScreen() {
       const newPhotos: UploadedPhoto[] = [];
 
       for (const asset of result.assets) {
-        const filename = asset.fileName || `photo_${Date.now()}.jpg`;
-        const type = asset.mimeType || "image/jpeg";
+        const uri = asset.uri;
+        const filename = uri.split("/").pop() || `photo_${Date.now()}.jpg`;
+        const type = "image/jpeg";
         try {
-          const uploadResult = await uploadApi.upload(asset.uri, filename, type);
-          newPhotos.push({ uri: asset.uri, key: uploadResult.objectPath });
-        } catch (err) {
-          console.error("Upload error:", err);
+          const uploadResult = await uploadApi.upload(uri, filename, type);
+          if (uploadResult && uploadResult.objectPath) {
+            newPhotos.push({ uri, key: uploadResult.objectPath });
+          }
+        } catch (err: any) {
+          console.error("Upload error details:", err);
+          Alert.alert("Erreur d'upload", `Impossible d'uploader une image: ${err.message}`);
         }
       }
 
@@ -88,18 +98,25 @@ export default function NewQuoteScreen() {
       return;
     }
 
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
 
     if (!result.canceled && result.assets.length > 0) {
       setUploading(true);
       const asset = result.assets[0];
-      const filename = asset.fileName || `photo_${Date.now()}.jpg`;
-      const type = asset.mimeType || "image/jpeg";
+      const uri = asset.uri;
+      const filename = uri.split("/").pop() || `photo_${Date.now()}.jpg`;
+      const type = "image/jpeg";
       try {
-        const uploadResult = await uploadApi.upload(asset.uri, filename, type);
-        setPhotos((prev) => [...prev, { uri: asset.uri, key: uploadResult.objectPath }]);
-      } catch (err) {
-        console.error("Upload error:", err);
+        const uploadResult = await uploadApi.upload(uri, filename, type);
+        if (uploadResult && uploadResult.objectPath) {
+          setPhotos((prev) => [...prev, { uri, key: uploadResult.objectPath }]);
+        }
+      } catch (err: any) {
+        console.error("Upload error details:", err);
+        Alert.alert("Erreur d'upload", `Impossible d'uploader la photo: ${err.message}`);
       }
       setUploading(false);
     }
@@ -121,12 +138,18 @@ export default function NewQuoteScreen() {
 
     setSubmitting(true);
     try {
-      await quotesApi.create({
+      const quoteData = {
         services: selectedServices,
         notes: notes.trim() || undefined,
-        photos: photos.map((p) => ({ key: p.key, type: "image/jpeg", name: "photo.jpg" })),
+        photos: photos.map((p) => ({ 
+          key: p.key, 
+          type: "image/jpeg", 
+          name: p.key.split('/').pop() || "photo.jpg" 
+        })),
         paymentMethod: "wire_transfer",
-      });
+      };
+
+      await quotesApi.create(quoteData);
 
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
