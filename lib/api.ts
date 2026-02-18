@@ -38,20 +38,30 @@ export async function apiCall<T = any>(
     fetchHeaders["Cookie"] = sessionCookie;
   }
 
-  const fetchFn = isFormData ? globalThis.fetch : expoFetch;
+  const url = `${API_BASE}${endpoint}`;
 
-  const fetchOptions: any = {
-    method,
-    headers: isFormData ? { Cookie: fetchHeaders["Cookie"] || "" } : fetchHeaders,
-    body: isFormData ? body : body ? JSON.stringify(body) : undefined,
-    credentials: "include" as const,
-  };
+  let res: Response;
 
-  if (isFormData && !fetchOptions.headers.Cookie) {
-    delete fetchOptions.headers.Cookie;
+  if (isFormData) {
+    const formHeaders: Record<string, string> = {};
+    if (sessionCookie) {
+      formHeaders["Cookie"] = sessionCookie;
+    }
+
+    res = await globalThis.fetch(url, {
+      method,
+      headers: formHeaders,
+      body: body,
+      credentials: "include" as const,
+    });
+  } else {
+    res = await expoFetch(url, {
+      method,
+      headers: fetchHeaders,
+      body: body ? JSON.stringify(body) : undefined,
+      credentials: "include" as const,
+    });
   }
-
-  const res = await fetchFn(`${API_BASE}${endpoint}`, fetchOptions);
 
   const setCookie = res.headers.get("set-cookie");
   if (setCookie) {
@@ -262,16 +272,20 @@ export const uploadApi = {
     const formData = new FormData();
 
     if (Platform.OS === "web") {
-      const response = await globalThis.fetch(uri);
-      const blob = await response.blob();
-      formData.append("media", blob, filename);
+      try {
+        const response = await globalThis.fetch(uri);
+        const blob = await response.blob();
+        formData.append("media", blob, filename);
+      } catch {
+        const file = new File([new Blob()], filename, { type });
+        formData.append("media", file);
+      }
     } else {
-      const fileToUpload = {
+      formData.append("media", {
         uri: uri,
         name: filename,
         type: type,
-      } as any;
-      formData.append("media", fileToUpload);
+      } as any);
     }
 
     return apiCall<{ objectPath: string; url?: string; key?: string; path?: string }>("/api/upload", {
@@ -463,17 +477,23 @@ export const supportApi = {
 export const ocrApi = {
   scan: async (uri: string, filename: string, type: string) => {
     const formData = new FormData();
-    
-    const cleanUri = Platform.OS === "ios" ? uri.replace("file://", "") : uri;
-    
-    const fileToScan = {
-      uri: cleanUri,
-      name: filename,
-      type: type,
-    };
-    
-    // @ts-ignore
-    formData.append("image", fileToScan);
+
+    if (Platform.OS === "web") {
+      try {
+        const response = await globalThis.fetch(uri);
+        const blob = await response.blob();
+        formData.append("media", blob, filename);
+      } catch {
+        const file = new File([new Blob()], filename, { type });
+        formData.append("media", file);
+      }
+    } else {
+      formData.append("media", {
+        uri: uri,
+        name: filename,
+        type: type,
+      } as any);
+    }
 
     return apiCall<any>("/api/ocr/scan", {
       method: "POST",

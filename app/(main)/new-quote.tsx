@@ -398,11 +398,11 @@ export default function NewQuoteScreen() {
                       </View>
                       <View style={styles.serviceInfo}>
                         <Text style={[styles.serviceItemName, isSelected && styles.serviceItemNameSelected]}>
-                          {service.name.trim()}
+                          {(service.name || "").trim()}
                         </Text>
-                        {parseFloat(service.basePrice) > 0 && (
+                        {parseFloat(service.basePrice || "0") > 0 && (
                           <Text style={styles.serviceItemPrice}>
-                            {parseFloat(service.basePrice).toFixed(2)} € HT
+                            {parseFloat(service.basePrice || "0").toFixed(2)} € HT
                           </Text>
                         )}
                       </View>
