@@ -60,9 +60,10 @@ export async function apiCall<T = any>(
       headers: fetchHeaders,
       credentials: "include" as const,
     };
-    if (body) {
+    if (body && typeof body === 'object' && Object.keys(body).length > 0) {
       fetchOptions.body = JSON.stringify(body);
     }
+    console.log(`DEBUG: API Call to ${url}`, { method, hasBody: !!fetchOptions.body });
     res = await expoFetch(url, fetchOptions);
   }
 
