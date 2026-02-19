@@ -1,12 +1,21 @@
 import React from "react";
-import { Pressable, StyleSheet, Platform } from "react-native";
-import { router } from "expo-router";
+import { Pressable, StyleSheet, Platform, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as WebBrowser from "expo-web-browser";
 import Colors from "@/constants/colors";
 
 export function FloatingSupport() {
   const insets = useSafeAreaInsets();
+
+  const handlePress = async () => {
+    const url = "https://appmyjantes.mytoolsgroup.eu/support";
+    try {
+      await WebBrowser.openBrowserAsync(url);
+    } catch {
+      Linking.openURL(url);
+    }
+  };
 
   return (
     <Pressable
@@ -17,7 +26,7 @@ export function FloatingSupport() {
         },
         pressed && styles.fabPressed,
       ]}
-      onPress={() => router.push("/support")}
+      onPress={handlePress}
     >
       <Ionicons name="chatbubble-ellipses" size={22} color="#fff" />
     </Pressable>

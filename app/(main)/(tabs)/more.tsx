@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as WebBrowser from "expo-web-browser";
 import Colors from "@/constants/colors";
 import { FloatingSupport } from "@/components/FloatingSupport";
 
@@ -55,8 +56,15 @@ export default function MoreScreen() {
           <MenuItem
             icon="chatbubbles-outline"
             title="Nous contacter"
-            subtitle="Posez vos questions"
-            onPress={() => router.push("/support")}
+            subtitle="Accéder au support en ligne"
+            onPress={async () => {
+              const url = "https://appmyjantes.mytoolsgroup.eu/support";
+              try {
+                await WebBrowser.openBrowserAsync(url);
+              } catch {
+                Linking.openURL(url);
+              }
+            }}
           />
           <MenuItem
             icon="mail-outline"
