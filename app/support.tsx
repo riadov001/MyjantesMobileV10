@@ -65,11 +65,7 @@ export default function SupportScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
-    >
+    <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.grabberBar} />
         <View style={styles.headerRow}>
@@ -81,103 +77,108 @@ export default function SupportScreen() {
         </View>
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={true}
-        scrollEnabled={true}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-        <View style={styles.field}>
-          <Text style={styles.label}>Nom</Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-            placeholder="Votre nom"
-            placeholderTextColor={Colors.textTertiary}
-            autoCapitalize="words"
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="votre@email.com"
-            placeholderTextColor={Colors.textTertiary}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Catégorie</Text>
-          <View style={styles.chipContainer}>
-            {CATEGORIES.map((cat) => {
-              const selected = category === cat;
-              return (
-                <Pressable
-                  key={cat}
-                  onPress={() => setCategory(cat)}
-                  style={[styles.chip, selected && styles.chipSelected]}
-                >
-                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                    {cat}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Sujet</Text>
-          <TextInput
-            style={styles.input}
-            value={subject}
-            onChangeText={setSubject}
-            placeholder="Objet de votre demande"
-            placeholderTextColor={Colors.textTertiary}
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Message</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={message}
-            onChangeText={setMessage}
-            placeholder="Décrivez votre demande..."
-            placeholderTextColor={Colors.textTertiary}
-            multiline
-            numberOfLines={5}
-            textAlignVertical="top"
-          />
-        </View>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.submitButton,
-            !canSubmit && styles.submitButtonDisabled,
-            pressed && canSubmit && styles.submitButtonPressed,
-          ]}
-          onPress={handleSubmit}
-          disabled={!canSubmit || loading}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={true}
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <>
-              <Ionicons name="send" size={18} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={styles.submitButtonText}>Envoyer</Text>
-            </>
-          )}
-        </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <View style={styles.field}>
+            <Text style={styles.label}>Nom</Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+              placeholder="Votre nom"
+              placeholderTextColor={Colors.textTertiary}
+              autoCapitalize="words"
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="votre@email.com"
+              placeholderTextColor={Colors.textTertiary}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Catégorie</Text>
+            <View style={styles.chipContainer}>
+              {CATEGORIES.map((cat) => {
+                const selected = category === cat;
+                return (
+                  <Pressable
+                    key={cat}
+                    onPress={() => setCategory(cat)}
+                    style={[styles.chip, selected && styles.chipSelected]}
+                  >
+                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                      {cat}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Sujet</Text>
+            <TextInput
+              style={styles.input}
+              value={subject}
+              onChangeText={setSubject}
+              placeholder="Objet de votre demande"
+              placeholderTextColor={Colors.textTertiary}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Message</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={message}
+              onChangeText={setMessage}
+              placeholder="Décrivez votre demande..."
+              placeholderTextColor={Colors.textTertiary}
+              multiline
+              numberOfLines={5}
+              textAlignVertical="top"
+            />
+          </View>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.submitButton,
+              !canSubmit && styles.submitButtonDisabled,
+              pressed && canSubmit && styles.submitButtonPressed,
+            ]}
+            onPress={handleSubmit}
+            disabled={!canSubmit || loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <>
+                <Ionicons name="send" size={18} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={styles.submitButtonText}>Envoyer</Text>
+              </>
+            )}
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
