@@ -65,7 +65,7 @@ export default function SupportScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: Platform.OS === "web" ? 34 + 20 : insets.bottom + 20 },
+          { paddingBottom: Platform.OS === "web" ? 34 + 100 : insets.bottom + 100 },
         ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -178,6 +178,7 @@ export default function SupportScreen() {
           <Ionicons name="mail-outline" size={16} color={Colors.textTertiary} />
           <Text style={styles.contactText}>contact@myjantes.com</Text>
         </View>
+        <View style={{ height: 100 }} />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -188,6 +189,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 20,
+    paddingBottom: 40,
   },
   headerSection: {
     alignItems: "center",
@@ -261,6 +263,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     marginTop: 4,
+    marginBottom: 40,
   },
   sendBtnPressed: {
     backgroundColor: Colors.primaryDark,

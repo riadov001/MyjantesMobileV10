@@ -78,11 +78,11 @@ export default function NewQuoteScreen() {
         const type = "image/jpeg";
         try {
           const uploadResult = await uploadApi.upload(uri, filename, type);
+          console.log("DEBUG: Upload result", JSON.stringify(uploadResult));
           const photoKey = uploadResult?.objectPath || uploadResult?.key || uploadResult?.path || uploadResult?.url;
           if (photoKey) {
             newPhotos.push({ uri, key: photoKey });
           } else {
-            console.warn("Upload response without path:", JSON.stringify(uploadResult));
             newPhotos.push({ uri, key: `upload_${Date.now()}_${idx}` });
           }
         } catch (err: any) {
@@ -116,6 +116,7 @@ export default function NewQuoteScreen() {
       const type = "image/jpeg";
       try {
         const uploadResult = await uploadApi.upload(uri, filename, type);
+        console.log("Upload result for", filename, ":", uploadResult);
         const photoKey = uploadResult?.objectPath || uploadResult?.key || uploadResult?.path || uploadResult?.url;
         if (photoKey) {
           setPhotos((prev) => [...prev, { uri, key: photoKey }]);
@@ -154,6 +155,8 @@ export default function NewQuoteScreen() {
         paymentMethod: "wire_transfer",
       };
 
+      console.log("Submitting quote with photos:", quoteData.photos);
+
       await quotesApi.create(quoteData);
 
       if (Platform.OS !== "web") {
@@ -172,6 +175,7 @@ export default function NewQuoteScreen() {
   };
 
     const canSubmit = selectedServices.length > 0 && photos.length > 0 && !submitting;
+    console.log("DEBUG: canSubmit", canSubmit, "services", selectedServices.length, "photos", photos.length);
 
   return (
     <View style={styles.container}>
