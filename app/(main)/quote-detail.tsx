@@ -111,7 +111,7 @@ export default function QuoteDetailScreen() {
   const totalAmount = (quote as any).quoteAmount || (quote as any).totalAmount || "0";
   const viewToken = (quote as any).viewToken as string | undefined;
   const expiryDate = (quote as any).expiryDate || (quote as any).validUntil;
-  const displayRef = (quote as any).reference || (quote as any).quoteNumber || `Devis #${quote.id.slice(0, 8).toUpperCase()}`;
+  const displayRef = (quote as any).reference || (quote as any).quoteNumber || `DEV-${quote.id.slice(0, 4).toUpperCase()}${quote.id.slice(-4).toUpperCase()}`;
 
   const statusLower = quote.status?.toLowerCase() || "";
   const canRespond = (statusLower === "pending" || statusLower === "approved") && !!viewToken;

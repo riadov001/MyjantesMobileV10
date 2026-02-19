@@ -51,7 +51,7 @@ function InvoiceCard({ invoice, index }: { invoice: Invoice; index: number }) {
       <View style={styles.cardHeader}>
         <View style={styles.invoiceIdRow}>
           <Ionicons name="receipt-outline" size={18} color={Colors.primary} />
-          <Text style={styles.invoiceNumber}>{invoice.invoiceNumber || `Facture #${(index + 1).toString().padStart(4, "0")}`}</Text>
+          <Text style={styles.invoiceNumber}>{invoice.invoiceNumber || `FAC-${invoice.id.substring(0, 4).toUpperCase()}${invoice.id.slice(-4).toUpperCase()}`}</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: statusInfo.bg }]}>
           <Ionicons name={statusInfo.icon} size={14} color={statusInfo.color} />

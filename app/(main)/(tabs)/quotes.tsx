@@ -51,7 +51,7 @@ function QuoteCard({ quote, index }: { quote: Quote; index: number }) {
       <View style={styles.quoteHeader}>
         <View style={styles.quoteIdRow}>
           <Ionicons name="document-text" size={18} color={Colors.primary} />
-          <Text style={styles.quoteId}>{quote.quoteNumber || `Devis #${quote.id.substring(0, 8).toUpperCase()}`}</Text>
+          <Text style={styles.quoteId}>{quote.quoteNumber || `DEV-${quote.id.substring(0, 4).toUpperCase()}${quote.id.slice(-4).toUpperCase()}`}</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: statusInfo.bg }]}>
           <Ionicons name={statusInfo.icon} size={14} color={statusInfo.color} />

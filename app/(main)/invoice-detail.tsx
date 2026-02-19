@@ -90,6 +90,7 @@ export default function InvoiceDetailScreen() {
   const invoiceItems = parseItems(invoice.items);
   const viewToken = (invoice as any).viewToken as string | undefined;
   const paymentLink = (invoice as any).paymentLink as string | undefined;
+  const displayRef = (invoice as any).invoiceNumber || `FAC-${invoice.id.slice(0, 4).toUpperCase()}${invoice.id.slice(-4).toUpperCase()}`;
 
   const statusLower = invoice.status?.toLowerCase() || "";
   const isUnpaid = statusLower === "pending" || statusLower === "en_attente"
@@ -153,7 +154,7 @@ export default function InvoiceDetailScreen() {
             <Ionicons name={statusInfo.icon} size={20} color={statusInfo.color} />
             <Text style={[styles.statusTextLarge, { color: statusInfo.color }]}>{statusInfo.label}</Text>
           </View>
-          <Text style={styles.invoiceNumber}>{invoice.invoiceNumber || "Facture"}</Text>
+          <Text style={styles.invoiceNumber}>{displayRef}</Text>
           <Text style={styles.invoiceDate}>{createdDate}</Text>
         </View>
 
