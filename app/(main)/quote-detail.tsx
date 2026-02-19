@@ -149,7 +149,7 @@ export default function QuoteDetailScreen() {
 
   const handleConsultExternal = async () => {
     if (!viewToken) return;
-    const url = `${API_BASE}/client/quotes`;
+    const url = `${API_BASE}/client/quotes/${quote.id}`;
     try {
       await WebBrowser.openBrowserAsync(url);
     } catch {
