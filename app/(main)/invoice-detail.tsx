@@ -92,7 +92,7 @@ export default function InvoiceDetailScreen() {
 
   const invoiceItems = parseItems(invoice.items);
   const viewToken = (invoice as any).viewToken as string | undefined;
-  const paymentLink = (invoice as any).paymentLink as string | undefined;
+  const paymentLink = (invoice as any).paymentLink || (invoice as any).payment_url || (invoice as any).stripe_url;
   const displayRef = invoice.invoiceNumber || invoice.id;
 
   const statusLower = invoice.status?.toLowerCase() || "";
@@ -161,9 +161,13 @@ export default function InvoiceDetailScreen() {
               const qty = item.quantity ? parseFloat(item.quantity) : 1;
               const unitPrice = item.unitPrice || item.price || item.priceHT || null;
               const lineTotal = item.total || item.totalHT || (unitPrice ? (parseFloat(unitPrice) * qty).toString() : null);
+              const serviceDetails = item.serviceDetails || item.details || item.notes;
               return (
                 <View key={idx} style={styles.lineItemCard}>
                   <Text style={styles.lineItemName}>{item.description || item.name || item.label || `Ligne ${idx + 1}`}</Text>
+                  {serviceDetails && (
+                    <Text style={styles.lineItemDetailsText}>{serviceDetails}</Text>
+                  )}
                   <View style={styles.lineItemDetails}>
                     {unitPrice && (
                       <Text style={styles.lineItemMeta}>
@@ -301,7 +305,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter_500Medium",
     color: Colors.text,
-    marginBottom: 6,
+    marginBottom: 4,
+  },
+  lineItemDetailsText: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    marginBottom: 8,
   },
   lineItemDetails: {
     flexDirection: "row",

@@ -45,19 +45,31 @@ export default function SupportScreen() {
 
     setSending(true);
     try {
-      await supportApi.contact({
+      console.log("DEBUG: Sending support message", {
         name: name.trim(),
         email: email.trim(),
         category,
         subject: subject.trim(),
         message: message.trim(),
       });
+      
+      const result = await supportApi.contact({
+        name: name.trim(),
+        email: email.trim(),
+        category,
+        subject: subject.trim(),
+        message: message.trim(),
+      });
+      
+      console.log("DEBUG: Support result", result);
+      
       Alert.alert(
         "Message envoyé",
         "Votre demande a bien été transmise. Nous reviendrons vers vous rapidement.",
         [{ text: "OK", onPress: () => router.back() }]
       );
     } catch (err: any) {
+      console.error("DEBUG: Support error", err);
       Alert.alert("Erreur", err.message || "Impossible d'envoyer le message.");
     } finally {
       setSending(false);

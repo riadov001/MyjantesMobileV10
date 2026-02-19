@@ -169,6 +169,9 @@ export default function NewQuoteScreen() {
         status: "pending",
         quoteAmount: items.reduce((sum, item) => sum + item.total, 0),
         totalAmount: items.reduce((sum, item) => sum + item.total, 0),
+        // Ensure common fields for different backend versions
+        serviceIds: selectedServices,
+        image_urls: photos.map((p) => p.uri),
       };
 
       console.log("DEBUG: Full quoteData payload:", JSON.stringify(quoteData));
