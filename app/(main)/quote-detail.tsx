@@ -24,12 +24,12 @@ function getStatusInfo(status: string) {
   const s = status?.toLowerCase() || "";
   if (s === "pending" || s === "en_attente")
     return { label: "En attente", color: Colors.pending, bg: Colors.pendingBg, icon: "time-outline" as const };
-  if (s === "accepted" || s === "accept\u00e9" || s === "approved")
-    return { label: "Accept\u00e9", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-circle-outline" as const };
-  if (s === "rejected" || s === "refus\u00e9" || s === "refused")
-    return { label: "Refus\u00e9", color: Colors.rejected, bg: Colors.rejectedBg, icon: "close-circle-outline" as const };
-  if (s === "completed" || s === "termin\u00e9")
-    return { label: "Termin\u00e9", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-done-outline" as const };
+  if (s === "accepted" || s === "accepté" || s === "approved")
+    return { label: "Accepté", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-circle-outline" as const };
+  if (s === "rejected" || s === "refusé" || s === "refused")
+    return { label: "Refusé", color: Colors.rejected, bg: Colors.rejectedBg, icon: "close-circle-outline" as const };
+  if (s === "completed" || s === "terminé")
+    return { label: "Terminé", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-done-outline" as const };
   if (s === "in_progress" || s === "en_cours")
     return { label: "En cours", color: "#3B82F6", bg: "#0F1D3D", icon: "hourglass-outline" as const };
   return { label: status || "Inconnu", color: Colors.textSecondary, bg: Colors.surfaceSecondary, icon: "help-outline" as const };
@@ -46,6 +46,20 @@ function parseVehicleInfo(vehicleInfo: any) {
   }
   if (typeof vehicleInfo === "object") return vehicleInfo;
   return null;
+}
+
+function parseItems(items: any): any[] {
+  if (!items) return [];
+  if (Array.isArray(items)) return items;
+  if (typeof items === "string") {
+    try {
+      const parsed = JSON.parse(items);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 function InfoRow({ icon, label, value }: { icon: string; label: string; value: string }) {
@@ -106,11 +120,14 @@ export default function QuoteDetailScreen() {
   });
 
   const vehicleInfo = parseVehicleInfo((quote as any).vehicleInfo);
-  const quoteItems = Array.isArray((quote as any).items) ? (quote as any).items : [];
+  const quoteItems = parseItems((quote as any).items);
   const quoteServices = Array.isArray((quote as any).services) ? (quote as any).services : [];
   const quotePhotos = Array.isArray((quote as any).photos) ? (quote as any).photos : [];
   const quoteNotes = (quote as any).notes || "";
   const totalAmount = (quote as any).quoteAmount || (quote as any).totalAmount || "0";
+  const totalHT = (quote as any).totalHT || (quote as any).amountHT;
+  const tvaRate = (quote as any).tvaRate || (quote as any).taxRate || "20";
+  const tvaAmount = (quote as any).tvaAmount || (quote as any).taxAmount;
   const viewToken = (quote as any).viewToken as string | undefined;
   const expiryDate = (quote as any).expiryDate || (quote as any).validUntil;
   const displayRef = (quote as any).reference || (quote as any).quoteNumber || quote.id;
@@ -118,17 +135,7 @@ export default function QuoteDetailScreen() {
   const statusLower = quote.status?.toLowerCase() || "";
   const canRespond = (statusLower === "pending" || statusLower === "approved") && !!viewToken;
 
-  const publicUrl = viewToken ? `${API_BASE}/api/public/quotes/${viewToken}` : null;
   const pdfUrl = viewToken ? `${API_BASE}/api/public/quotes/${viewToken}/pdf` : null;
-
-  const handleConsultOnline = async () => {
-    if (!publicUrl) return;
-    try {
-      await WebBrowser.openBrowserAsync(publicUrl);
-    } catch {
-      Linking.openURL(publicUrl);
-    }
-  };
 
   const handleDownloadPdf = async () => {
     if (!pdfUrl) return;
@@ -145,7 +152,7 @@ export default function QuoteDetailScreen() {
     try {
       await apiCall(`/api/public/quotes/${viewToken}/accept`, { method: "POST" });
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
-      Alert.alert("Devis accept\u00e9", "Le devis a bien \u00e9t\u00e9 accept\u00e9.");
+      Alert.alert("Devis accepté", "Le devis a bien été accepté.");
     } catch (err: any) {
       Alert.alert("Erreur", err?.message || "Impossible d'accepter le devis.");
     } finally {
@@ -157,7 +164,7 @@ export default function QuoteDetailScreen() {
     if (!viewToken) return;
     Alert.alert(
       "Refuser le devis",
-      "\u00cates-vous s\u00fbr de vouloir refuser ce devis ?",
+      "Êtes-vous sûr de vouloir refuser ce devis ?",
       [
         { text: "Annuler", style: "cancel" },
         {
@@ -168,7 +175,7 @@ export default function QuoteDetailScreen() {
             try {
               await apiCall(`/api/public/quotes/${viewToken}/reject`, { method: "POST" });
               queryClient.invalidateQueries({ queryKey: ["quotes"] });
-              Alert.alert("Devis refus\u00e9", "Le devis a bien \u00e9t\u00e9 refus\u00e9.");
+              Alert.alert("Devis refusé", "Le devis a bien été refusé.");
             } catch (err: any) {
               Alert.alert("Erreur", err?.message || "Impossible de refuser le devis.");
             } finally {
@@ -184,6 +191,10 @@ export default function QuoteDetailScreen() {
     ? new Date(expiryDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
     : null;
 
+  const totalHTNum = totalHT ? parseFloat(totalHT) : 0;
+  const tvaAmountNum = tvaAmount ? parseFloat(tvaAmount) : 0;
+  const totalTTCNum = parseFloat(totalAmount) || (totalHTNum + tvaAmountNum) || 0;
+
   return (
     <View style={styles.container}>
       <View
@@ -195,7 +206,7 @@ export default function QuoteDetailScreen() {
         <Pressable onPress={() => router.back()} style={styles.headerBtn}>
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>D\u00e9tail du devis</Text>
+        <Text style={styles.headerTitle}>Détail du devis</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -218,32 +229,58 @@ export default function QuoteDetailScreen() {
           )}
         </View>
 
-        {totalAmount && parseFloat(totalAmount) > 0 && (
-          <View style={styles.amountCard}>
-            <Text style={styles.amountLabel}>Montant total</Text>
-            <Text style={styles.amountValue}>{parseFloat(totalAmount).toFixed(2)} \u20ac</Text>
-          </View>
-        )}
-
         {quoteItems.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="list-outline" size={18} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>D\u00e9tail des prestations</Text>
+              <Text style={styles.sectionTitle}>Lignes du devis</Text>
             </View>
-            {quoteItems.map((item: any, idx: number) => (
-              <View key={idx} style={styles.itemRow}>
-                <View style={styles.itemInfo}>
-                  <Text style={styles.itemName}>{item.description || item.name || `Prestation ${idx + 1}`}</Text>
-                  {item.quantity && <Text style={styles.itemQty}>x{item.quantity}</Text>}
+            {quoteItems.map((item: any, idx: number) => {
+              const qty = item.quantity ? parseFloat(item.quantity) : 1;
+              const unitPrice = item.unitPrice || item.price || item.priceHT || null;
+              const lineTotal = item.total || item.totalHT || (unitPrice ? (parseFloat(unitPrice) * qty).toString() : null);
+              return (
+                <View key={idx} style={styles.lineItemCard}>
+                  <Text style={styles.lineItemName}>{item.description || item.name || item.label || `Prestation ${idx + 1}`}</Text>
+                  <View style={styles.lineItemDetails}>
+                    {unitPrice && (
+                      <Text style={styles.lineItemMeta}>
+                        {parseFloat(unitPrice).toFixed(2)} € x {qty}
+                      </Text>
+                    )}
+                    {!unitPrice && qty > 1 && (
+                      <Text style={styles.lineItemMeta}>Qté : {qty}</Text>
+                    )}
+                    {lineTotal && (
+                      <Text style={styles.lineItemTotal}>
+                        {parseFloat(lineTotal).toFixed(2)} €
+                      </Text>
+                    )}
+                  </View>
                 </View>
-                {(item.unitPrice || item.price || item.total) && (
-                  <Text style={styles.itemPrice}>
-                    {parseFloat(item.total || item.unitPrice || item.price || "0").toFixed(2)} \u20ac
-                  </Text>
-                )}
+              );
+            })}
+          </View>
+        )}
+
+        {(totalHTNum > 0 || totalTTCNum > 0) && (
+          <View style={styles.amountsCard}>
+            {totalHTNum > 0 && (
+              <View style={styles.amountRow}>
+                <Text style={styles.amountLabel}>Montant HT</Text>
+                <Text style={styles.amountHT}>{totalHTNum.toFixed(2)} €</Text>
               </View>
-            ))}
+            )}
+            {tvaAmountNum > 0 && (
+              <View style={styles.amountRow}>
+                <Text style={styles.amountLabel}>TVA ({parseFloat(tvaRate)}%)</Text>
+                <Text style={styles.amountTVA}>{tvaAmountNum.toFixed(2)} €</Text>
+              </View>
+            )}
+            <View style={[styles.amountRow, (totalHTNum > 0 || tvaAmountNum > 0) ? styles.totalRow : undefined]}>
+              <Text style={styles.totalLabel}>Total TTC</Text>
+              <Text style={styles.totalValue}>{totalTTCNum.toFixed(2)} €</Text>
+            </View>
           </View>
         )}
 
@@ -251,7 +288,7 @@ export default function QuoteDetailScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="construct-outline" size={18} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>Services demand\u00e9s</Text>
+              <Text style={styles.sectionTitle}>Services demandés</Text>
             </View>
             {quoteServices.map((service: any, idx: number) => {
               const serviceName = typeof service === "string" ? service : service?.name || service?.id || `Service ${idx + 1}`;
@@ -271,12 +308,12 @@ export default function QuoteDetailScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="car-outline" size={18} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>V\u00e9hicule</Text>
+              <Text style={styles.sectionTitle}>Véhicule</Text>
             </View>
             {vehicleInfo.marque && <InfoRow icon="car-outline" label="Marque" value={vehicleInfo.marque} />}
-            {vehicleInfo.modele && <InfoRow icon="car-sport-outline" label="Mod\u00e8le" value={vehicleInfo.modele} />}
+            {vehicleInfo.modele && <InfoRow icon="car-sport-outline" label="Modèle" value={vehicleInfo.modele} />}
             {vehicleInfo.immatriculation && <InfoRow icon="card-outline" label="Immatriculation" value={vehicleInfo.immatriculation} />}
-            {vehicleInfo.annee && <InfoRow icon="calendar-outline" label="Ann\u00e9e" value={vehicleInfo.annee} />}
+            {vehicleInfo.annee && <InfoRow icon="calendar-outline" label="Année" value={vehicleInfo.annee} />}
             {vehicleInfo.vin && <InfoRow icon="barcode-outline" label="VIN" value={vehicleInfo.vin} />}
             {vehicleInfo.couleur && <InfoRow icon="color-palette-outline" label="Couleur" value={vehicleInfo.couleur} />}
           </View>
@@ -311,17 +348,10 @@ export default function QuoteDetailScreen() {
 
         <View style={styles.footerActions}>
           {viewToken && (
-            <>
-              <Pressable style={styles.btnConsult} onPress={handleConsultOnline}>
-                <Ionicons name="globe-outline" size={18} color="#FFFFFF" />
-                <Text style={styles.btnConsultText}>Consulter en ligne</Text>
-              </Pressable>
-
-              <Pressable style={styles.btnPdf} onPress={handleDownloadPdf}>
-                <Ionicons name="document-outline" size={18} color="#3B82F6" />
-                <Text style={styles.btnPdfText}>T\u00e9l\u00e9charger PDF</Text>
-              </Pressable>
-            </>
+            <Pressable style={styles.btnPdf} onPress={handleDownloadPdf}>
+              <Ionicons name="document-outline" size={18} color="#3B82F6" />
+              <Text style={styles.btnPdfText}>Télécharger PDF</Text>
+            </Pressable>
           )}
 
           {canRespond && (
@@ -425,23 +455,47 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.textTertiary,
   },
-  amountCard: {
+  amountsCard: {
     backgroundColor: Colors.surface,
     borderRadius: 14,
-    padding: 20,
-    alignItems: "center",
+    padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: Colors.primary,
-    gap: 4,
+    borderColor: Colors.border,
+    gap: 10,
+  },
+  amountRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   amountLabel: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
   },
-  amountValue: {
-    fontSize: 28,
+  amountHT: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
+  },
+  amountTVA: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
+  },
+  totalRow: {
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderLight,
+  },
+  totalLabel: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    color: Colors.text,
+  },
+  totalValue: {
+    fontSize: 22,
     fontFamily: "Inter_700Bold",
     color: Colors.primary,
   },
@@ -459,10 +513,7 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     color: Colors.text,
   },
-  itemRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  lineItemCard: {
     backgroundColor: Colors.surface,
     borderRadius: 10,
     padding: 14,
@@ -470,28 +521,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  itemInfo: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  itemName: {
+  lineItemName: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
     color: Colors.text,
-    flex: 1,
+    marginBottom: 6,
   },
-  itemQty: {
+  lineItemDetails: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  lineItemMeta: {
     fontSize: 13,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
   },
-  itemPrice: {
+  lineItemTotal: {
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
     color: Colors.primary,
-    marginLeft: 12,
   },
   serviceRow: {
     flexDirection: "row",
@@ -595,20 +644,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     gap: 12,
     marginBottom: 20,
-  },
-  btnConsult: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: "#3B82F6",
-    borderRadius: 12,
-    paddingVertical: 14,
-  },
-  btnConsultText: {
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
-    color: "#FFFFFF",
   },
   btnPdf: {
     flexDirection: "row",
