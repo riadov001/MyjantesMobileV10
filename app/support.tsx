@@ -45,14 +45,6 @@ export default function SupportScreen() {
 
     setSending(true);
     try {
-      console.log("DEBUG: Sending support message", {
-        name: name.trim(),
-        email: email.trim(),
-        category,
-        subject: subject.trim(),
-        message: message.trim(),
-      });
-      
       const result = await supportApi.contact({
         name: name.trim(),
         email: email.trim().toLowerCase(),
