@@ -93,3 +93,6 @@ lib/
 - Feb 2026: Thème sombre complet (noir/rouge/blanc)
 - Feb 2026: Section informations véhicule + scan OCR carte grise dans formulaire devis
 - Feb 2026: API admin/super_admin complètes intégrées dans lib/api.ts
+- Feb 2026: Formulaire support intégré en interne (plus de redirection PWA)
+- Feb 2026: Liens de paiement affichés sur factures en attente (paymentLink)
+- Feb 2026: Push notifications activées (expo-notifications, polling 30s, deep linking)
