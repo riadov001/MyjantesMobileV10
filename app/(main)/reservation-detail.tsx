@@ -1,0 +1,483 @@
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Platform,
+  ActivityIndicator,
+  Pressable,
+} from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
+import { reservationsApi, servicesApi, Reservation } from "@/lib/api";
+import Colors from "@/constants/colors";
+
+function getReservationStatusInfo(status: string) {
+  const s = status?.toLowerCase() || "";
+  if (s === "confirmed" || s === "confirm\u00e9e" || s === "confirm\u00e9")
+    return { label: "Confirm\u00e9e", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-circle-outline" as const };
+  if (s === "pending" || s === "en_attente")
+    return { label: "En attente", color: Colors.pending, bg: Colors.pendingBg, icon: "time-outline" as const };
+  if (s === "cancelled" || s === "annul\u00e9e")
+    return { label: "Annul\u00e9e", color: Colors.rejected, bg: Colors.rejectedBg, icon: "close-circle-outline" as const };
+  if (s === "completed" || s === "termin\u00e9e" || s === "termin\u00e9")
+    return { label: "Termin\u00e9e", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-done-outline" as const };
+  if (s === "in_progress" || s === "en_cours")
+    return { label: "En cours", color: "#3B82F6", bg: "#0F1D3D", icon: "hourglass-outline" as const };
+  return { label: status || "Inconnu", color: Colors.textSecondary, bg: Colors.surfaceSecondary, icon: "help-outline" as const };
+}
+
+function parseVehicleInfo(vehicleInfo: any) {
+  if (!vehicleInfo) return null;
+  if (typeof vehicleInfo === "string") {
+    try { return JSON.parse(vehicleInfo); } catch { return null; }
+  }
+  if (typeof vehicleInfo === "object") return vehicleInfo;
+  return null;
+}
+
+function formatDateTime(dateStr: string | null | undefined, includeTime = true) {
+  if (!dateStr) return null;
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return null;
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    };
+    if (includeTime) {
+      options.hour = "2-digit";
+      options.minute = "2-digit";
+    }
+    return d.toLocaleDateString("fr-FR", options);
+  } catch {
+    return null;
+  }
+}
+
+function formatTimeOnly(dateStr: string | null | undefined) {
+  if (!dateStr) return null;
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  } catch {
+    return null;
+  }
+}
+
+function InfoRow({ icon, label, value }: { icon: string; label: string; value: string }) {
+  return (
+    <View style={styles.infoRow}>
+      <View style={styles.infoLabel}>
+        <Ionicons name={icon as any} size={16} color={Colors.textSecondary} />
+        <Text style={styles.infoLabelText}>{label}</Text>
+      </View>
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
+  );
+}
+
+export default function ReservationDetailScreen() {
+  const insets = useSafeAreaInsets();
+  const { id } = useLocalSearchParams<{ id: string }>();
+
+  const { data: allReservationsRaw = [], isLoading } = useQuery({
+    queryKey: ["reservations"],
+    queryFn: reservationsApi.getAll,
+  });
+
+  const { data: allServicesRaw = [] } = useQuery({
+    queryKey: ["services"],
+    queryFn: servicesApi.getAll,
+    retry: 1,
+  });
+
+  const allReservations = Array.isArray(allReservationsRaw) ? allReservationsRaw : [];
+  const allServices = Array.isArray(allServicesRaw) ? allServicesRaw : [];
+  const reservation = allReservations.find((r) => r.id === id);
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  if (!reservation) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <Ionicons name="alert-circle-outline" size={48} color={Colors.textTertiary} />
+        <Text style={styles.errorText}>R\u00e9servation introuvable</Text>
+        <Pressable onPress={() => router.back()} style={styles.backLink}>
+          <Text style={styles.backLinkText}>Retour</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  const statusInfo = getReservationStatusInfo(reservation.status);
+  const displayRef = (reservation as any).reference || reservation.id;
+  const vehicleInfo = parseVehicleInfo(reservation.vehicleInfo);
+
+  const startDate = (reservation as any).scheduledDate || reservation.date;
+  const endDate = (reservation as any).estimatedEndDate;
+
+  const formattedStart = formatDateTime(startDate);
+  const formattedEnd = formatDateTime(endDate);
+  const startTime = formatTimeOnly(startDate);
+  const endTime = formatTimeOnly(endDate);
+  const startDateOnly = formatDateTime(startDate, false);
+  const endDateOnly = formatDateTime(endDate, false);
+
+  const isSameDay = startDate && endDate &&
+    new Date(startDate).toDateString() === new Date(endDate).toDateString();
+
+  const serviceId = (reservation as any).serviceId;
+  const linkedService = serviceId ? allServices.find((s) => s.id === serviceId) : null;
+
+  const wheelCount = (reservation as any).wheelCount;
+  const diameter = (reservation as any).diameter;
+  const priceHT = (reservation as any).priceExcludingTax;
+  const taxRate = (reservation as any).taxRate || "20";
+  const taxAmount = (reservation as any).taxAmount;
+  const productDetails = (reservation as any).productDetails;
+  const notes = reservation.notes;
+  const timeSlot = reservation.timeSlot;
+
+  const createdDate = formatDateTime(reservation.createdAt);
+
+  const priceHTNum = priceHT ? parseFloat(priceHT) : 0;
+  const taxAmountNum = taxAmount ? parseFloat(taxAmount) : priceHTNum * (parseFloat(taxRate) / 100);
+  const totalTTC = priceHTNum + taxAmountNum;
+
+  return (
+    <View style={styles.container}>
+      <View
+        style={[
+          styles.header,
+          { paddingTop: Platform.OS === "web" ? 67 + 8 : insets.top + 8 },
+        ]}
+      >
+        <Pressable onPress={() => router.back()} style={styles.headerBtn}>
+          <Ionicons name="arrow-back" size={24} color={Colors.text} />
+        </Pressable>
+        <Text style={styles.headerTitle}>D\u00e9tail r\u00e9servation</Text>
+        <View style={styles.headerBtn} />
+      </View>
+
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: Platform.OS === "web" ? 34 + 40 : insets.bottom + 40 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.statusCard}>
+          <View style={[styles.statusBadgeLarge, { backgroundColor: statusInfo.bg }]}>
+            <Ionicons name={statusInfo.icon} size={20} color={statusInfo.color} />
+            <Text style={[styles.statusTextLarge, { color: statusInfo.color }]}>{statusInfo.label}</Text>
+          </View>
+          <Text style={styles.referenceText}>{displayRef}</Text>
+          {createdDate && (
+            <Text style={styles.createdDate}>Cr\u00e9\u00e9e le {createdDate}</Text>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="calendar-outline" size={18} color={Colors.primary} />
+            <Text style={styles.sectionTitle}>Dates et horaires</Text>
+          </View>
+          <View style={styles.dateCard}>
+            <View style={styles.dateBlock}>
+              <View style={styles.dateIconRow}>
+                <View style={[styles.dateIconCircle, { backgroundColor: Colors.acceptedBg }]}>
+                  <Ionicons name="play" size={14} color={Colors.accepted} />
+                </View>
+                <Text style={styles.dateBlockLabel}>D\u00e9but</Text>
+              </View>
+              <Text style={styles.dateBlockValue}>
+                {formattedStart || startDateOnly || "Non d\u00e9fini"}
+              </Text>
+              {timeSlot && !formattedStart && (
+                <Text style={styles.timeSlotText}>Cr\u00e9neau : {timeSlot}</Text>
+              )}
+            </View>
+
+            {(endDate || formattedEnd) && (
+              <>
+                <View style={styles.dateSeparator}>
+                  <Ionicons name="arrow-down" size={16} color={Colors.textTertiary} />
+                </View>
+                <View style={styles.dateBlock}>
+                  <View style={styles.dateIconRow}>
+                    <View style={[styles.dateIconCircle, { backgroundColor: Colors.pendingBg }]}>
+                      <Ionicons name="stop" size={14} color={Colors.pending} />
+                    </View>
+                    <Text style={styles.dateBlockLabel}>Fin estim\u00e9e</Text>
+                  </View>
+                  <Text style={styles.dateBlockValue}>
+                    {isSameDay ? (endTime || "Non d\u00e9fini") : (formattedEnd || "Non d\u00e9fini")}
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+
+        {linkedService && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="construct-outline" size={18} color={Colors.primary} />
+              <Text style={styles.sectionTitle}>Service</Text>
+            </View>
+            <View style={styles.serviceCard}>
+              <View style={styles.serviceIconCircle}>
+                <Ionicons name="build-outline" size={20} color={Colors.primary} />
+              </View>
+              <View style={styles.serviceInfo}>
+                <Text style={styles.serviceName}>{linkedService.name}</Text>
+                {linkedService.description ? (
+                  <Text style={styles.serviceDesc} numberOfLines={3}>{linkedService.description}</Text>
+                ) : null}
+                {linkedService.estimatedDuration && (
+                  <View style={styles.serviceMeta}>
+                    <Ionicons name="time-outline" size={13} color={Colors.textTertiary} />
+                    <Text style={styles.serviceMetaText}>Dur\u00e9e estim\u00e9e : {linkedService.estimatedDuration}</Text>
+                  </View>
+                )}
+                {linkedService.basePrice && parseFloat(linkedService.basePrice) > 0 && (
+                  <View style={styles.serviceMeta}>
+                    <Ionicons name="pricetag-outline" size={13} color={Colors.textTertiary} />
+                    <Text style={styles.serviceMetaText}>\u00c0 partir de {parseFloat(linkedService.basePrice).toFixed(2)} \u20ac</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+        )}
+
+        {(wheelCount || diameter || productDetails) && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="settings-outline" size={18} color={Colors.primary} />
+              <Text style={styles.sectionTitle}>D\u00e9tails prestation</Text>
+            </View>
+            {wheelCount && <InfoRow icon="apps-outline" label="Nombre de jantes" value={`${wheelCount}`} />}
+            {diameter && <InfoRow icon="resize-outline" label="Diam\u00e8tre" value={`${diameter}"`} />}
+            {productDetails && (
+              <View style={styles.productDetailsCard}>
+                <Text style={styles.productDetailsText}>{productDetails}</Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {priceHTNum > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="receipt-outline" size={18} color={Colors.primary} />
+              <Text style={styles.sectionTitle}>Tarification</Text>
+            </View>
+            <View style={styles.priceCard}>
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>Prix HT</Text>
+                <Text style={styles.priceValue}>{priceHTNum.toFixed(2)} \u20ac</Text>
+              </View>
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>TVA ({parseFloat(taxRate)}%)</Text>
+                <Text style={styles.priceValue}>{taxAmountNum.toFixed(2)} \u20ac</Text>
+              </View>
+              <View style={[styles.priceRow, styles.totalRow]}>
+                <Text style={styles.totalLabel}>Total TTC</Text>
+                <Text style={styles.totalValue}>{totalTTC.toFixed(2)} \u20ac</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {vehicleInfo && typeof vehicleInfo === "object" && Object.keys(vehicleInfo).length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="car-outline" size={18} color={Colors.primary} />
+              <Text style={styles.sectionTitle}>V\u00e9hicule</Text>
+            </View>
+            {(vehicleInfo.marque || vehicleInfo.brand || vehicleInfo.make) && (
+              <InfoRow icon="car-outline" label="Marque" value={vehicleInfo.marque || vehicleInfo.brand || vehicleInfo.make} />
+            )}
+            {(vehicleInfo.modele || vehicleInfo.model) && (
+              <InfoRow icon="car-sport-outline" label="Mod\u00e8le" value={vehicleInfo.modele || vehicleInfo.model} />
+            )}
+            {(vehicleInfo.immatriculation || vehicleInfo.plate || vehicleInfo.registration) && (
+              <InfoRow icon="card-outline" label="Immatriculation" value={vehicleInfo.immatriculation || vehicleInfo.plate || vehicleInfo.registration} />
+            )}
+            {vehicleInfo.annee && <InfoRow icon="calendar-outline" label="Ann\u00e9e" value={vehicleInfo.annee} />}
+            {vehicleInfo.vin && <InfoRow icon="barcode-outline" label="VIN" value={vehicleInfo.vin} />}
+            {vehicleInfo.couleur && <InfoRow icon="color-palette-outline" label="Couleur" value={vehicleInfo.couleur} />}
+          </View>
+        )}
+
+        {notes ? (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
+              <Text style={styles.sectionTitle}>Notes</Text>
+            </View>
+            <Text style={styles.notesText}>{notes}</Text>
+          </View>
+        ) : null}
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: Colors.background },
+  center: { justifyContent: "center", alignItems: "center" },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  headerBtn: { width: 40, height: 40, justifyContent: "center", alignItems: "center" },
+  headerTitle: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 17,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.text,
+  },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 20 },
+  statusCard: { alignItems: "center", marginBottom: 24, gap: 8 },
+  statusBadgeLarge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 24,
+  },
+  statusTextLarge: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  referenceText: { fontSize: 18, fontFamily: "Inter_700Bold", color: Colors.text },
+  createdDate: { fontSize: 13, fontFamily: "Inter_400Regular", color: Colors.textSecondary },
+  section: { marginBottom: 24 },
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontFamily: "Inter_600SemiBold", color: Colors.text },
+  dateCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: 4,
+  },
+  dateBlock: { gap: 6 },
+  dateIconRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  dateIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dateBlockLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold", color: Colors.textSecondary },
+  dateBlockValue: {
+    fontSize: 15,
+    fontFamily: "Inter_500Medium",
+    color: Colors.text,
+    paddingLeft: 36,
+    textTransform: "capitalize" as const,
+  },
+  timeSlotText: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    paddingLeft: 36,
+  },
+  dateSeparator: { alignItems: "center", paddingVertical: 6 },
+  serviceCard: {
+    flexDirection: "row",
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: 14,
+  },
+  serviceIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.surfaceSecondary,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  serviceInfo: { flex: 1, gap: 4 },
+  serviceName: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: Colors.text },
+  serviceDesc: { fontSize: 13, fontFamily: "Inter_400Regular", color: Colors.textSecondary, lineHeight: 19 },
+  serviceMeta: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
+  serviceMetaText: { fontSize: 12, fontFamily: "Inter_400Regular", color: Colors.textTertiary },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+  },
+  infoLabel: { flexDirection: "row", alignItems: "center", gap: 8 },
+  infoLabelText: { fontSize: 13, fontFamily: "Inter_500Medium", color: Colors.textSecondary },
+  infoValue: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: Colors.text },
+  productDetailsCard: {
+    marginTop: 8,
+    backgroundColor: Colors.surface,
+    borderRadius: 10,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  productDetailsText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 22,
+  },
+  priceCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: 10,
+  },
+  priceRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  priceLabel: { fontSize: 14, fontFamily: "Inter_400Regular", color: Colors.textSecondary },
+  priceValue: { fontSize: 15, fontFamily: "Inter_600SemiBold", color: Colors.text },
+  totalRow: { paddingTop: 10, borderTopWidth: 1, borderTopColor: Colors.borderLight },
+  totalLabel: { fontSize: 16, fontFamily: "Inter_700Bold", color: Colors.text },
+  totalValue: { fontSize: 22, fontFamily: "Inter_700Bold", color: Colors.primary },
+  notesText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 22,
+    backgroundColor: Colors.surface,
+    borderRadius: 10,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  errorText: { fontSize: 16, fontFamily: "Inter_500Medium", color: Colors.textSecondary, marginTop: 12 },
+  backLink: { marginTop: 16, paddingHorizontal: 24, paddingVertical: 10, backgroundColor: Colors.primary, borderRadius: 10 },
+  backLinkText: { fontSize: 14, fontFamily: "Inter_600SemiBold", color: "#fff" },
+});

@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
+import { router } from "expo-router";
 import { reservationsApi, Reservation } from "@/lib/api";
 import Colors from "@/constants/colors";
 import { FloatingSupport } from "@/components/FloatingSupport";
@@ -53,7 +54,7 @@ function ReservationCard({ reservation }: { reservation: Reservation }) {
   }
 
   return (
-    <View style={styles.card}>
+    <Pressable style={styles.card} onPress={() => router.push({ pathname: "/(main)/reservation-detail", params: { id: reservation.id } })}>
       <View style={styles.cardHeader}>
         <View style={styles.idRow}>
           <Ionicons name="calendar" size={18} color={Colors.primary} />
@@ -94,7 +95,14 @@ function ReservationCard({ reservation }: { reservation: Reservation }) {
           </View>
         )}
       </View>
-    </View>
+      <View style={styles.cardFooter}>
+        <View style={{ flex: 1 }} />
+        <View style={styles.viewDetailRow}>
+          <Text style={styles.viewDetailText}>Voir d\u00e9tails</Text>
+          <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
+        </View>
+      </View>
+    </Pressable>
   );
 }
 
@@ -241,6 +249,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingTop: 80,
     gap: 8,
+  },
+  cardFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderLight,
+  },
+  viewDetailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  viewDetailText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primary,
   },
   emptyTitle: {
     fontSize: 18,

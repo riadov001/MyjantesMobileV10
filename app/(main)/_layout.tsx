@@ -8,6 +8,7 @@ export default function MainLayout() {
       <Stack.Screen name="new-quote" options={{ presentation: "modal", headerShown: false }} />
       <Stack.Screen name="quote-detail" options={{ headerShown: false }} />
       <Stack.Screen name="invoice-detail" options={{ headerShown: false }} />
+      <Stack.Screen name="reservation-detail" options={{ headerShown: false }} />
     </Stack>
   );
 }

@@ -21,13 +21,13 @@ const API_BASE = "https://appmyjantes.mytoolsgroup.eu";
 
 function getInvoiceStatusInfo(status: string) {
   const s = status?.toLowerCase() || "";
-  if (s === "paid" || s === "payée" || s === "payé")
+  if (s === "paid" || s === "pay\u00e9e" || s === "pay\u00e9")
     return { label: "Pay\u00e9e", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-circle-outline" as const };
   if (s === "pending" || s === "en_attente")
     return { label: "En attente", color: Colors.pending, bg: Colors.pendingBg, icon: "time-outline" as const };
   if (s === "overdue" || s === "en_retard")
     return { label: "En retard", color: Colors.rejected, bg: Colors.rejectedBg, icon: "alert-circle-outline" as const };
-  if (s === "sent" || s === "envoyée" || s === "envoyee")
+  if (s === "sent" || s === "envoy\u00e9e" || s === "envoyee")
     return { label: "Envoy\u00e9e", color: "#3B82F6", bg: "#0F1D3D", icon: "send-outline" as const };
   if (s === "cancelled" || s === "annul\u00e9e" || s === "annulee")
     return { label: "Annul\u00e9e", color: Colors.textTertiary, bg: Colors.surfaceSecondary, icon: "close-circle-outline" as const };
@@ -54,11 +54,14 @@ export default function InvoiceDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const { data: invoice, isLoading } = useQuery<Invoice>({
-    queryKey: ["invoices", id],
-    queryFn: () => invoicesApi.getById(id!),
-    enabled: !!id,
+  const { data: allInvoicesRaw = [], isLoading } = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoicesApi.getAll,
+    retry: 1,
   });
+
+  const allInvoices = Array.isArray(allInvoicesRaw) ? allInvoicesRaw : [];
+  const invoice = allInvoices.find((inv) => inv.id === id);
 
   if (isLoading) {
     return (
@@ -90,12 +93,12 @@ export default function InvoiceDetailScreen() {
   const invoiceItems = parseItems(invoice.items);
   const viewToken = (invoice as any).viewToken as string | undefined;
   const paymentLink = (invoice as any).paymentLink as string | undefined;
-  const displayRef = (invoice as any).invoiceNumber || `FAC-${invoice.id.slice(0, 4).toUpperCase()}${invoice.id.slice(-4).toUpperCase()}`;
+  const displayRef = invoice.invoiceNumber || invoice.id;
 
   const statusLower = invoice.status?.toLowerCase() || "";
   const isUnpaid = statusLower === "pending" || statusLower === "en_attente"
     || statusLower === "overdue" || statusLower === "en_retard"
-    || statusLower === "sent" || statusLower === "envoyee" || statusLower === "envoyée";
+    || statusLower === "sent" || statusLower === "envoyee" || statusLower === "envoy\u00e9e";
 
   const publicUrl = viewToken ? `${API_BASE}/api/public/invoices/${viewToken}` : null;
   const pdfUrl = viewToken ? `${API_BASE}/api/public/invoices/${viewToken}/pdf` : null;
@@ -138,7 +141,7 @@ export default function InvoiceDetailScreen() {
         <Pressable onPress={() => router.back()} style={styles.headerBtn}>
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>Detail facture</Text>
+        <Text style={styles.headerTitle}>D\u00e9tail facture</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -161,15 +164,15 @@ export default function InvoiceDetailScreen() {
         <View style={styles.amountsCard}>
           <View style={styles.amountRow}>
             <Text style={styles.amountLabel}>Montant HT</Text>
-            <Text style={styles.amountHT}>{parseFloat(invoice.totalHT || "0").toFixed(2)} EUR</Text>
+            <Text style={styles.amountHT}>{parseFloat(invoice.totalHT || "0").toFixed(2)} \u20ac</Text>
           </View>
           <View style={styles.amountRow}>
             <Text style={styles.amountLabel}>TVA ({parseFloat(invoice.tvaRate || "20")}%)</Text>
-            <Text style={styles.amountTVA}>{parseFloat(invoice.tvaAmount || "0").toFixed(2)} EUR</Text>
+            <Text style={styles.amountTVA}>{parseFloat(invoice.tvaAmount || "0").toFixed(2)} \u20ac</Text>
           </View>
           <View style={[styles.amountRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total TTC</Text>
-            <Text style={styles.totalValue}>{parseFloat(invoice.totalTTC || "0").toFixed(2)} EUR</Text>
+            <Text style={styles.totalValue}>{parseFloat(invoice.totalTTC || "0").toFixed(2)} \u20ac</Text>
           </View>
         </View>
 
@@ -177,7 +180,7 @@ export default function InvoiceDetailScreen() {
           <View style={styles.infoCard}>
             <Ionicons name="hourglass-outline" size={18} color={Colors.pending} />
             <View>
-              <Text style={styles.infoCardLabel}>Date d'echeance</Text>
+              <Text style={styles.infoCardLabel}>Date d'\u00e9ch\u00e9ance</Text>
               <Text style={styles.infoCardValue}>
                 {new Date(invoice.dueDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
               </Text>
@@ -189,7 +192,7 @@ export default function InvoiceDetailScreen() {
           <View style={styles.infoCard}>
             <Ionicons name="checkmark-circle" size={18} color={Colors.accepted} />
             <View>
-              <Text style={styles.infoCardLabel}>Payee le</Text>
+              <Text style={styles.infoCardLabel}>Pay\u00e9e le</Text>
               <Text style={styles.infoCardValue}>
                 {new Date(invoice.paidAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
               </Text>
@@ -201,7 +204,7 @@ export default function InvoiceDetailScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="list-outline" size={18} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>Detail</Text>
+              <Text style={styles.sectionTitle}>D\u00e9tail</Text>
             </View>
             {invoiceItems.map((item: any, idx: number) => (
               <View key={idx} style={styles.itemRow}>
@@ -211,7 +214,7 @@ export default function InvoiceDetailScreen() {
                 </View>
                 {(item.unitPrice || item.total) && (
                   <Text style={styles.itemPrice}>
-                    {parseFloat(item.total || item.unitPrice || "0").toFixed(2)} EUR
+                    {parseFloat(item.total || item.unitPrice || "0").toFixed(2)} \u20ac
                   </Text>
                 )}
               </View>
@@ -246,7 +249,7 @@ export default function InvoiceDetailScreen() {
 
               <Pressable style={styles.btnPdf} onPress={handleDownloadPdf}>
                 <Ionicons name="document-outline" size={18} color="#3B82F6" />
-                <Text style={styles.btnPdfText}>Telecharger PDF</Text>
+                <Text style={styles.btnPdfText}>T\u00e9l\u00e9charger PDF</Text>
               </Pressable>
             </>
           )}

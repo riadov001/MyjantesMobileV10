@@ -238,11 +238,22 @@ export interface Reservation {
   id: string;
   clientId: string;
   quoteId: string | null;
+  serviceId: string | null;
+  reference: string | null;
   date: string;
+  scheduledDate: string | null;
+  estimatedEndDate: string | null;
   timeSlot: string | null;
   status: string;
   notes: string | null;
   vehicleInfo: any;
+  wheelCount: number | null;
+  diameter: string | null;
+  priceExcludingTax: string | null;
+  taxRate: string | null;
+  taxAmount: string | null;
+  productDetails: string | null;
+  assignedEmployeeId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -266,6 +277,7 @@ export const invoicesApi = {
 export const reservationsApi = {
   getAll: () => apiCall<Reservation[]>("/api/reservations"),
   getById: (id: string) => apiCall<Reservation>(`/api/reservations/${id}`),
+  getServices: (id: string) => apiCall<any[]>(`/api/reservations/${id}/services`),
 };
 
 export const uploadApi = {

@@ -51,7 +51,7 @@ function InvoiceCard({ invoice, index }: { invoice: Invoice; index: number }) {
       <View style={styles.cardHeader}>
         <View style={styles.invoiceIdRow}>
           <Ionicons name="receipt-outline" size={18} color={Colors.primary} />
-          <Text style={styles.invoiceNumber}>{invoice.invoiceNumber || `FAC-${invoice.id.substring(0, 4).toUpperCase()}${invoice.id.slice(-4).toUpperCase()}`}</Text>
+          <Text style={styles.invoiceNumber}>{invoice.invoiceNumber || invoice.id}</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: statusInfo.bg }]}>
           <Ionicons name={statusInfo.icon} size={14} color={statusInfo.color} />
@@ -75,10 +75,16 @@ function InvoiceCard({ invoice, index }: { invoice: Invoice; index: number }) {
       </View>
 
       <View style={styles.cardFooter}>
-        <Text style={styles.amountLabel}>Montant TTC</Text>
-        <Text style={styles.amountValue}>
-          {parseFloat(invoice.totalTTC || "0").toFixed(2)} €
-        </Text>
+        <View>
+          <Text style={styles.amountLabel}>Montant TTC</Text>
+          <Text style={styles.amountValue}>
+            {parseFloat(invoice.totalTTC || "0").toFixed(2)} €
+          </Text>
+        </View>
+        <View style={styles.viewDetailRow}>
+          <Text style={styles.viewDetailText}>Voir détails</Text>
+          <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
+        </View>
       </View>
     </Pressable>
   );
@@ -237,6 +243,16 @@ const styles = StyleSheet.create({
   amountValue: {
     fontSize: 18,
     fontFamily: "Inter_700Bold",
+    color: Colors.primary,
+  },
+  viewDetailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  viewDetailText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
     color: Colors.primary,
   },
   emptyContainer: {

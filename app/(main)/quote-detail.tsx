@@ -24,7 +24,7 @@ function getStatusInfo(status: string) {
   const s = status?.toLowerCase() || "";
   if (s === "pending" || s === "en_attente")
     return { label: "En attente", color: Colors.pending, bg: Colors.pendingBg, icon: "time-outline" as const };
-  if (s === "accepted" || s === "accepté" || s === "approved")
+  if (s === "accepted" || s === "accept\u00e9" || s === "approved")
     return { label: "Accept\u00e9", color: Colors.accepted, bg: Colors.acceptedBg, icon: "checkmark-circle-outline" as const };
   if (s === "rejected" || s === "refus\u00e9" || s === "refused")
     return { label: "Refus\u00e9", color: Colors.rejected, bg: Colors.rejectedBg, icon: "close-circle-outline" as const };
@@ -67,11 +67,13 @@ export default function QuoteDetailScreen() {
   const [accepting, setAccepting] = useState(false);
   const [rejecting, setRejecting] = useState(false);
 
-  const { data: quote, isLoading } = useQuery<Quote>({
-    queryKey: ["quotes", id],
-    queryFn: () => quotesApi.getById(id!),
-    enabled: !!id,
+  const { data: allQuotesRaw = [], isLoading } = useQuery({
+    queryKey: ["quotes"],
+    queryFn: quotesApi.getAll,
   });
+
+  const allQuotes = Array.isArray(allQuotesRaw) ? allQuotesRaw : [];
+  const quote = allQuotes.find((q) => q.id === id);
 
   if (isLoading) {
     return (
@@ -104,14 +106,14 @@ export default function QuoteDetailScreen() {
   });
 
   const vehicleInfo = parseVehicleInfo((quote as any).vehicleInfo);
-  const quoteItems = (quote as any).items || [];
-  const quoteServices = (quote as any).services || [];
-  const quotePhotos = (quote as any).photos || [];
+  const quoteItems = Array.isArray((quote as any).items) ? (quote as any).items : [];
+  const quoteServices = Array.isArray((quote as any).services) ? (quote as any).services : [];
+  const quotePhotos = Array.isArray((quote as any).photos) ? (quote as any).photos : [];
   const quoteNotes = (quote as any).notes || "";
   const totalAmount = (quote as any).quoteAmount || (quote as any).totalAmount || "0";
   const viewToken = (quote as any).viewToken as string | undefined;
   const expiryDate = (quote as any).expiryDate || (quote as any).validUntil;
-  const displayRef = (quote as any).reference || (quote as any).quoteNumber || `DEV-${quote.id.slice(0, 4).toUpperCase()}${quote.id.slice(-4).toUpperCase()}`;
+  const displayRef = (quote as any).reference || (quote as any).quoteNumber || quote.id;
 
   const statusLower = quote.status?.toLowerCase() || "";
   const canRespond = (statusLower === "pending" || statusLower === "approved") && !!viewToken;
@@ -143,8 +145,7 @@ export default function QuoteDetailScreen() {
     try {
       await apiCall(`/api/public/quotes/${viewToken}/accept`, { method: "POST" });
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
-      queryClient.invalidateQueries({ queryKey: ["quotes", id] });
-      Alert.alert("Devis accepte", "Le devis a bien ete accepte.");
+      Alert.alert("Devis accept\u00e9", "Le devis a bien \u00e9t\u00e9 accept\u00e9.");
     } catch (err: any) {
       Alert.alert("Erreur", err?.message || "Impossible d'accepter le devis.");
     } finally {
@@ -156,7 +157,7 @@ export default function QuoteDetailScreen() {
     if (!viewToken) return;
     Alert.alert(
       "Refuser le devis",
-      "Etes-vous sur de vouloir refuser ce devis ?",
+      "\u00cates-vous s\u00fbr de vouloir refuser ce devis ?",
       [
         { text: "Annuler", style: "cancel" },
         {
@@ -167,8 +168,7 @@ export default function QuoteDetailScreen() {
             try {
               await apiCall(`/api/public/quotes/${viewToken}/reject`, { method: "POST" });
               queryClient.invalidateQueries({ queryKey: ["quotes"] });
-              queryClient.invalidateQueries({ queryKey: ["quotes", id] });
-              Alert.alert("Devis refuse", "Le devis a bien ete refuse.");
+              Alert.alert("Devis refus\u00e9", "Le devis a bien \u00e9t\u00e9 refus\u00e9.");
             } catch (err: any) {
               Alert.alert("Erreur", err?.message || "Impossible de refuser le devis.");
             } finally {
@@ -195,7 +195,7 @@ export default function QuoteDetailScreen() {
         <Pressable onPress={() => router.back()} style={styles.headerBtn}>
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>Detail du devis</Text>
+        <Text style={styles.headerTitle}>D\u00e9tail du devis</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -221,7 +221,7 @@ export default function QuoteDetailScreen() {
         {totalAmount && parseFloat(totalAmount) > 0 && (
           <View style={styles.amountCard}>
             <Text style={styles.amountLabel}>Montant total</Text>
-            <Text style={styles.amountValue}>{parseFloat(totalAmount).toFixed(2)} EUR</Text>
+            <Text style={styles.amountValue}>{parseFloat(totalAmount).toFixed(2)} \u20ac</Text>
           </View>
         )}
 
@@ -229,7 +229,7 @@ export default function QuoteDetailScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="list-outline" size={18} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>Detail des prestations</Text>
+              <Text style={styles.sectionTitle}>D\u00e9tail des prestations</Text>
             </View>
             {quoteItems.map((item: any, idx: number) => (
               <View key={idx} style={styles.itemRow}>
@@ -239,7 +239,7 @@ export default function QuoteDetailScreen() {
                 </View>
                 {(item.unitPrice || item.price || item.total) && (
                   <Text style={styles.itemPrice}>
-                    {parseFloat(item.total || item.unitPrice || item.price || "0").toFixed(2)} EUR
+                    {parseFloat(item.total || item.unitPrice || item.price || "0").toFixed(2)} \u20ac
                   </Text>
                 )}
               </View>
@@ -251,7 +251,7 @@ export default function QuoteDetailScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="construct-outline" size={18} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>Services demandes</Text>
+              <Text style={styles.sectionTitle}>Services demand\u00e9s</Text>
             </View>
             {quoteServices.map((service: any, idx: number) => {
               const serviceName = typeof service === "string" ? service : service?.name || service?.id || `Service ${idx + 1}`;
@@ -271,12 +271,12 @@ export default function QuoteDetailScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="car-outline" size={18} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>Vehicule</Text>
+              <Text style={styles.sectionTitle}>V\u00e9hicule</Text>
             </View>
             {vehicleInfo.marque && <InfoRow icon="car-outline" label="Marque" value={vehicleInfo.marque} />}
-            {vehicleInfo.modele && <InfoRow icon="car-sport-outline" label="Modele" value={vehicleInfo.modele} />}
+            {vehicleInfo.modele && <InfoRow icon="car-sport-outline" label="Mod\u00e8le" value={vehicleInfo.modele} />}
             {vehicleInfo.immatriculation && <InfoRow icon="card-outline" label="Immatriculation" value={vehicleInfo.immatriculation} />}
-            {vehicleInfo.annee && <InfoRow icon="calendar-outline" label="Annee" value={vehicleInfo.annee} />}
+            {vehicleInfo.annee && <InfoRow icon="calendar-outline" label="Ann\u00e9e" value={vehicleInfo.annee} />}
             {vehicleInfo.vin && <InfoRow icon="barcode-outline" label="VIN" value={vehicleInfo.vin} />}
             {vehicleInfo.couleur && <InfoRow icon="color-palette-outline" label="Couleur" value={vehicleInfo.couleur} />}
           </View>
@@ -309,49 +309,51 @@ export default function QuoteDetailScreen() {
           </View>
         ) : null}
 
-        {viewToken && (
-          <View style={styles.footerActions}>
-            <Pressable style={styles.btnConsult} onPress={handleConsultOnline}>
-              <Ionicons name="globe-outline" size={18} color="#FFFFFF" />
-              <Text style={styles.btnConsultText}>Consulter en ligne</Text>
-            </Pressable>
+        <View style={styles.footerActions}>
+          {viewToken && (
+            <>
+              <Pressable style={styles.btnConsult} onPress={handleConsultOnline}>
+                <Ionicons name="globe-outline" size={18} color="#FFFFFF" />
+                <Text style={styles.btnConsultText}>Consulter en ligne</Text>
+              </Pressable>
 
-            <Pressable style={styles.btnPdf} onPress={handleDownloadPdf}>
-              <Ionicons name="document-outline" size={18} color="#3B82F6" />
-              <Text style={styles.btnPdfText}>Telecharger PDF</Text>
-            </Pressable>
+              <Pressable style={styles.btnPdf} onPress={handleDownloadPdf}>
+                <Ionicons name="document-outline" size={18} color="#3B82F6" />
+                <Text style={styles.btnPdfText}>T\u00e9l\u00e9charger PDF</Text>
+              </Pressable>
+            </>
+          )}
 
-            {canRespond && (
-              <View style={styles.responseRow}>
-                <Pressable
-                  style={[styles.btnAccept, accepting && styles.btnDisabled]}
-                  onPress={handleAccept}
-                  disabled={accepting || rejecting}
-                >
-                  {accepting ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />
-                  )}
-                  <Text style={styles.btnAcceptText}>Accepter</Text>
-                </Pressable>
+          {canRespond && (
+            <View style={styles.responseRow}>
+              <Pressable
+                style={[styles.btnAccept, accepting && styles.btnDisabled]}
+                onPress={handleAccept}
+                disabled={accepting || rejecting}
+              >
+                {accepting ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />
+                )}
+                <Text style={styles.btnAcceptText}>Accepter</Text>
+              </Pressable>
 
-                <Pressable
-                  style={[styles.btnReject, rejecting && styles.btnDisabled]}
-                  onPress={handleReject}
-                  disabled={accepting || rejecting}
-                >
-                  {rejecting ? (
-                    <ActivityIndicator size="small" color={Colors.rejected} />
-                  ) : (
-                    <Ionicons name="close-circle-outline" size={18} color={Colors.rejected} />
-                  )}
-                  <Text style={styles.btnRejectText}>Refuser</Text>
-                </Pressable>
-              </View>
-            )}
-          </View>
-        )}
+              <Pressable
+                style={[styles.btnReject, rejecting && styles.btnDisabled]}
+                onPress={handleReject}
+                disabled={accepting || rejecting}
+              >
+                {rejecting ? (
+                  <ActivityIndicator size="small" color={Colors.rejected} />
+                ) : (
+                  <Ionicons name="close-circle-outline" size={18} color={Colors.rejected} />
+                )}
+                <Text style={styles.btnRejectText}>Refuser</Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
