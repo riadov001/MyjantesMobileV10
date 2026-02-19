@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo, ReactNo
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
 import { authApi, UserProfile, LoginData, RegisterData, setSessionCookie } from "./api";
 
 interface AuthContextValue {
@@ -72,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (cookie) {
         await storeToken("session_cookie", cookie);
       }
+      router.replace("/(main)/(tabs)");
     } catch (error) {
       console.error("Login error:", error);
       throw error;
