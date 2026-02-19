@@ -144,35 +144,38 @@ export default function NewQuoteScreen() {
 
     setSubmitting(true);
     try {
-      // Create items from selected services
-      const items = selectedServices.map(serviceId => {
-        const service = services.find((s: Service) => s.id === serviceId);
-        return {
-          serviceId: serviceId,
-          description: service?.name || "Service",
-          quantity: 1,
-          unitPrice: parseFloat(service?.basePrice || "0"),
-          total: parseFloat(service?.basePrice || "0")
-        };
+      const formData = new FormData();
+      
+      // Photos
+      for (const photo of photos) {
+        if (Platform.OS === "web") {
+          const response = await globalThis.fetch(photo.uri);
+          const blob = await response.blob();
+          formData.append("images", blob, `photo_${Date.now()}.jpg`);
+        } else {
+          formData.append("images", {
+            uri: photo.uri,
+            name: `photo_${Date.now()}.jpg`,
+            type: "image/jpeg",
+          } as any);
+        }
+      }
+
+      // Metadata
+      formData.append("serviceId", selectedServices[0]);
+      formData.append("paymentMethod", "wire_transfer");
+      formData.append("requestDetails", notes.trim() || "Demande via application mobile");
+      formData.append("vehicleInfo", JSON.stringify({ notes }));
+
+      console.log("DEBUG: Sending mobile quote with multipart");
+
+      const result = await apiCall("/api/mobile/quotes", {
+        method: "POST",
+        body: formData,
+        isFormData: true,
       });
 
-      // Formater les données selon ce que le backend attend probablement
-      const quoteData = {
-        services: selectedServices, // Essayer "services" au lieu de "serviceIds"
-        serviceIds: selectedServices,
-        notes: notes.trim() || "",
-        photos: photos.map((p) => p.key),
-        items: items,
-        totalAmount: items.reduce((sum, item) => sum + item.total, 0),
-        status: "pending",
-        paymentMethod: "wire_transfer",
-      };
-
-      console.log("DEBUG: Sending quote", JSON.stringify(quoteData));
-
-      // Utiliser quotesApi.create qui est déjà défini et typé
-      const result = await quotesApi.create(quoteData);
-      console.log("DEBUG: Server response:", JSON.stringify(result));
+      console.log("DEBUG: Mobile quote response:", JSON.stringify(result));
 
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -183,6 +186,7 @@ export default function NewQuoteScreen() {
         [{ text: "OK", onPress: () => router.push("/(main)/(tabs)/quotes") }]
       );
     } catch (err: any) {
+      console.error("Submission error:", err);
       Alert.alert("Erreur", err.message || "Impossible d'envoyer la demande.");
     } finally {
       setSubmitting(false);

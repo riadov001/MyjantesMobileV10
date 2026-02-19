@@ -390,6 +390,23 @@ export const uploadApi = {
       isFormData: true,
     });
   },
+  uploadMultiple: async (assets: any[]) => {
+    const formData = new FormData();
+    for (const asset of assets) {
+      if (Platform.OS === "web") {
+        const response = await globalThis.fetch(asset.uri);
+        const blob = await response.blob();
+        formData.append("images", blob, asset.filename || `photo_${Date.now()}.jpg`);
+      } else {
+        formData.append("images", {
+          uri: asset.uri,
+          name: asset.filename || `photo_${Date.now()}.jpg`,
+          type: asset.type || "image/jpeg",
+        } as any);
+      }
+    }
+    return formData;
+  }
 };
 
 export const adminQuotesApi = {
