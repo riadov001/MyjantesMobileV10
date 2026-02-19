@@ -43,6 +43,8 @@ function InvoiceCard({ invoice, index }: { invoice: Invoice; index: number }) {
     year: "numeric",
   });
 
+  const totalTTC = (invoice as any).totalIncludingTax || invoice.totalTTC || "0";
+
   return (
     <Pressable
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
@@ -84,7 +86,7 @@ function InvoiceCard({ invoice, index }: { invoice: Invoice; index: number }) {
         <View>
           <Text style={styles.amountLabel}>Montant TTC</Text>
           <Text style={styles.amountValue}>
-            {parseFloat(invoice.totalTTC || "0").toFixed(2)} €
+            {parseFloat(totalTTC).toFixed(2)} €
           </Text>
         </View>
         <View style={styles.viewDetailRow}>

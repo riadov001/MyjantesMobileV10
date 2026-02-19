@@ -114,7 +114,7 @@ export default function QuoteDetailScreen() {
   const date = new Date(quote.createdAt);
   const formattedDate = date.toLocaleDateString("fr-FR", {
     day: "numeric",
-    month: "long",
+    month: "short",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
@@ -125,7 +125,7 @@ export default function QuoteDetailScreen() {
   const quoteServices = Array.isArray((quote as any).services) ? (quote as any).services : [];
   const quotePhotos = Array.isArray((quote as any).photos) ? (quote as any).photos : [];
   const quoteNotes = (quote as any).notes || "";
-  const totalAmount = (quote as any).quoteAmount || (quote as any).totalAmount || "0";
+  const totalAmount = (quote as any).quoteAmount || (quote as any).totalIncludingTax || (quote as any).totalAmount || "0";
   const totalHT = (quote as any).totalHT || (quote as any).amountHT;
   const tvaRate = (quote as any).tvaRate || (quote as any).taxRate || "20";
   const tvaAmount = (quote as any).tvaAmount || (quote as any).taxAmount;
@@ -278,11 +278,18 @@ export default function QuoteDetailScreen() {
                 <Text style={styles.amountTVA}>{tvaAmountNum.toFixed(2)} €</Text>
               </View>
             )}
-            <View style={[styles.amountRow, (totalHTNum > 0 || tvaAmountNum > 0) ? styles.totalRow : undefined]}>
-              <Text style={styles.totalLabel}>Total TTC</Text>
-              <Text style={styles.totalValue}>{totalTTCNum.toFixed(2)} €</Text>
-            </View>
+          <View style={[styles.amountRow, (totalHTNum > 0 || tvaAmountNum > 0) ? styles.totalRow : undefined]}>
+            <Text style={styles.totalLabel}>Total TTC</Text>
+            <Text style={styles.totalValue}>{totalTTCNum.toFixed(2)} €</Text>
           </View>
+          {totalAmount && parseFloat(totalAmount) > 0 && parseFloat(totalAmount) !== totalTTCNum && (
+            <View style={styles.totalBadge}>
+              <Text style={styles.totalBadgeText}>
+                Total payé : {parseFloat(totalAmount).toFixed(2)} €
+              </Text>
+            </View>
+          )}
+        </View>
         )}
 
         {quoteServices.length > 0 && (
@@ -503,6 +510,19 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontFamily: "Inter_700Bold",
     color: Colors.primary,
+  },
+  totalBadge: {
+    backgroundColor: Colors.surfaceSecondary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginTop: 8,
+    alignSelf: "flex-start",
+  },
+  totalBadgeText: {
+    fontSize: 14,
+    fontFamily: "Inter_700Bold",
+    color: Colors.accepted,
   },
   section: {
     marginBottom: 20,

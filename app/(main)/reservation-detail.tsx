@@ -45,9 +45,8 @@ function formatDateTime(dateStr: string | null | undefined, includeTime = true) 
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return null;
     const options: Intl.DateTimeFormatOptions = {
-      weekday: "long",
       day: "numeric",
-      month: "long",
+      month: "short",
       year: "numeric",
     };
     if (includeTime) {
@@ -142,7 +141,8 @@ export default function ReservationDetailScreen() {
 
   const wheelCount = (reservation as any).wheelCount;
   const diameter = (reservation as any).diameter;
-  const priceHT = (reservation as any).priceExcludingTax;
+  const priceHT = (reservation as any).priceExcludingTax || (reservation as any).totalExcludingTax;
+  const totalTTC_Raw = (reservation as any).totalIncludingTax;
   const taxRate = (reservation as any).taxRate || "20";
   const taxAmount = (reservation as any).taxAmount;
   const productDetails = (reservation as any).productDetails;
@@ -153,7 +153,7 @@ export default function ReservationDetailScreen() {
 
   const priceHTNum = priceHT ? parseFloat(priceHT) : 0;
   const taxAmountNum = taxAmount ? parseFloat(taxAmount) : priceHTNum * (parseFloat(taxRate) / 100);
-  const totalTTC = priceHTNum + taxAmountNum;
+  const totalTTC = totalTTC_Raw ? parseFloat(totalTTC_Raw) : (priceHTNum + taxAmountNum);
 
   return (
     <View style={styles.container}>

@@ -86,7 +86,7 @@ export default function InvoiceDetailScreen() {
   const statusInfo = getInvoiceStatusInfo(invoice.status);
   const createdDate = new Date(invoice.createdAt).toLocaleDateString("fr-FR", {
     day: "numeric",
-    month: "long",
+    month: "short",
     year: "numeric",
   });
 
@@ -94,6 +94,9 @@ export default function InvoiceDetailScreen() {
   const viewToken = (invoice as any).viewToken as string | undefined;
   const paymentLink = (invoice as any).paymentLink || (invoice as any).payment_url || (invoice as any).stripe_url;
   const displayRef = invoice.invoiceNumber || invoice.id;
+
+  const totalIncludingTax = (invoice as any).totalIncludingTax;
+  const totalTTC_Display = totalIncludingTax ? parseFloat(totalIncludingTax) : parseFloat(invoice.totalTTC || "0");
 
   const statusLower = invoice.status?.toLowerCase() || "";
   const isUnpaid = statusLower === "pending" || statusLower === "en_attente"
@@ -149,6 +152,13 @@ export default function InvoiceDetailScreen() {
           </View>
           <Text style={styles.invoiceNumber}>{displayRef}</Text>
           <Text style={styles.invoiceDate}>{createdDate}</Text>
+          {(invoice as any).totalIncludingTax && parseFloat((invoice as any).totalIncludingTax) > 0 && (
+            <View style={styles.totalBadge}>
+              <Text style={styles.totalBadgeText}>
+                {parseFloat((invoice as any).totalIncludingTax).toFixed(2)} €
+              </Text>
+            </View>
+          )}
         </View>
 
         {invoiceItems.length > 0 && (
@@ -200,7 +210,7 @@ export default function InvoiceDetailScreen() {
           </View>
           <View style={[styles.amountRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total TTC</Text>
-            <Text style={styles.totalValue}>{parseFloat(invoice.totalTTC || "0").toFixed(2)} €</Text>
+            <Text style={styles.totalValue}>{totalTTC_Display.toFixed(2)} €</Text>
           </View>
         </View>
 
@@ -290,6 +300,18 @@ const styles = StyleSheet.create({
   statusTextLarge: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   invoiceNumber: { fontSize: 18, fontFamily: "Inter_700Bold", color: Colors.text },
   invoiceDate: { fontSize: 13, fontFamily: "Inter_400Regular", color: Colors.textSecondary },
+  totalBadge: {
+    backgroundColor: Colors.surfaceSecondary,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  totalBadgeText: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    color: Colors.primary,
+  },
   section: { marginBottom: 20 },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
   sectionTitle: { fontSize: 16, fontFamily: "Inter_600SemiBold", color: Colors.text },
