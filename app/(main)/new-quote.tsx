@@ -148,6 +148,9 @@ export default function NewQuoteScreen() {
 
     setSubmitting(true);
     try {
+      // DEBUG: Log the actual photo keys being sent
+      console.log("DEBUG: Final photo keys to send:", photos.map(p => p.key));
+
       const quoteData = {
         services: selectedServices,
         notes: notes.trim() || undefined,
@@ -155,9 +158,10 @@ export default function NewQuoteScreen() {
         paymentMethod: "wire_transfer",
       };
 
-      console.log("Submitting quote with photos:", quoteData.photos);
+      console.log("DEBUG: Full quoteData payload:", JSON.stringify(quoteData));
 
-      await quotesApi.create(quoteData);
+      const result = await quotesApi.create(quoteData);
+      console.log("DEBUG: Server response:", JSON.stringify(result));
 
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

@@ -178,7 +178,7 @@ export default function SupportScreen() {
           <Ionicons name="mail-outline" size={16} color={Colors.textTertiary} />
           <Text style={styles.contactText}>contact@myjantes.com</Text>
         </View>
-        <View style={{ height: 100 }} />
+        <View style={{ height: 120 }} />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: 40,
+    paddingBottom: 80,
   },
   headerSection: {
     alignItems: "center",
