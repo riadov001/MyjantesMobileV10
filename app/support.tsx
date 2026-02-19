@@ -18,30 +18,37 @@ import { supportApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import Colors from "@/constants/colors";
 
+const CATEGORIES = [
+  { value: "question", label: "Question générale" },
+  { value: "devis", label: "Devis / Facturation" },
+  { value: "reservation", label: "Réservation" },
+  { value: "technique", label: "Problème technique" },
+  { value: "autre", label: "Autre" },
+];
+
 export default function SupportScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const [firstName, setFirstName] = useState(user?.firstName || "");
-  const [lastName, setLastName] = useState(user?.lastName || "");
+  const fullName = user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "";
+  const [name, setName] = useState(fullName);
   const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState(user?.phone || "");
+  const [category, setCategory] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
 
   const handleSend = async () => {
-    if (!firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim() || !subject.trim() || !message.trim()) {
-      Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+    if (!name.trim() || !email.trim() || !category || !subject.trim() || !message.trim()) {
+      Alert.alert("Erreur", "Veuillez remplir tous les champs obligatoires.");
       return;
     }
 
     setSending(true);
     try {
       await supportApi.contact({
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
+        name: name.trim(),
         email: email.trim(),
-        phone: phone.trim(),
+        category,
         subject: subject.trim(),
         message: message.trim(),
       });
@@ -81,31 +88,19 @@ export default function SupportScreen() {
         </View>
 
         <View style={styles.form}>
-          <View style={styles.row}>
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>Prénom</Text>
-              <TextInput
-                style={styles.input}
-                value={firstName}
-                onChangeText={setFirstName}
-                placeholder="Prénom"
-                placeholderTextColor={Colors.textTertiary}
-              />
-            </View>
-            <View style={styles.halfInput}>
-              <Text style={styles.label}>Nom</Text>
-              <TextInput
-                style={styles.input}
-                value={lastName}
-                onChangeText={setLastName}
-                placeholder="Nom"
-                placeholderTextColor={Colors.textTertiary}
-              />
-            </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Nom complet *</Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+              placeholder="Votre nom complet"
+              placeholderTextColor={Colors.textTertiary}
+            />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>Email *</Text>
             <TextInput
               style={styles.input}
               value={email}
@@ -118,19 +113,30 @@ export default function SupportScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Téléphone</Text>
-            <TextInput
-              style={styles.input}
-              value={phone}
-              onChangeText={setPhone}
-              placeholder="06 XX XX XX XX"
-              placeholderTextColor={Colors.textTertiary}
-              keyboardType="phone-pad"
-            />
+            <Text style={styles.label}>Catégorie *</Text>
+            <View style={styles.categoriesContainer}>
+              {CATEGORIES.map((cat) => {
+                const isSelected = category === cat.value;
+                return (
+                  <Pressable
+                    key={cat.value}
+                    style={[styles.categoryChip, isSelected && styles.categoryChipSelected]}
+                    onPress={() => setCategory(cat.value)}
+                  >
+                    {isSelected && (
+                      <Ionicons name="checkmark-circle" size={16} color={Colors.primary} />
+                    )}
+                    <Text style={[styles.categoryText, isSelected && styles.categoryTextSelected]}>
+                      {cat.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Sujet</Text>
+            <Text style={styles.label}>Sujet *</Text>
             <TextInput
               style={styles.input}
               value={subject}
@@ -141,7 +147,7 @@ export default function SupportScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Message</Text>
+            <Text style={styles.label}>Message *</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={message}
@@ -220,14 +226,6 @@ const styles = StyleSheet.create({
   form: {
     gap: 14,
   },
-  row: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  halfInput: {
-    flex: 1,
-    gap: 4,
-  },
   inputGroup: {
     gap: 4,
   },
@@ -253,6 +251,35 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 12,
     textAlignVertical: "top" as any,
+  },
+  categoriesContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  categoryChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  categoryChipSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: `${Colors.primary}15`,
+  },
+  categoryText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textSecondary,
+  },
+  categoryTextSelected: {
+    color: Colors.primary,
+    fontFamily: "Inter_600SemiBold",
   },
   sendBtn: {
     backgroundColor: Colors.primary,

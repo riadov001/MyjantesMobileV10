@@ -173,10 +173,9 @@ export interface LoginData {
 }
 
 export interface SupportContactData {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
-  phone: string;
+  category: string;
   subject: string;
   message: string;
 }

@@ -33,15 +33,24 @@ function getReservationStatusInfo(status: string) {
 
 function ReservationCard({ reservation }: { reservation: Reservation }) {
   const statusInfo = getReservationStatusInfo(reservation.status);
-  const date = new Date(reservation.date);
-  const formattedDate = date.toLocaleDateString("fr-FR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const dateStr = reservation.date || reservation.createdAt;
+  let formattedDate = "Date inconnue";
+  try {
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      formattedDate = date.toLocaleDateString("fr-FR", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+    }
+  } catch {}
 
-  const vehicleInfo = reservation.vehicleInfo;
+  let vehicleInfo = reservation.vehicleInfo;
+  if (typeof vehicleInfo === "string") {
+    try { vehicleInfo = JSON.parse(vehicleInfo); } catch {}
+  }
 
   return (
     <View style={styles.card}>
@@ -63,18 +72,19 @@ function ReservationCard({ reservation }: { reservation: Reservation }) {
             <Text style={styles.detailText}>Créneau : {reservation.timeSlot}</Text>
           </View>
         )}
-        {vehicleInfo?.marque && (
+        {vehicleInfo && (typeof vehicleInfo === "object") && (vehicleInfo.marque || vehicleInfo.brand || vehicleInfo.make) && (
           <View style={styles.detailRow}>
             <Ionicons name="car-outline" size={15} color={Colors.textSecondary} />
             <Text style={styles.detailText}>
-              {vehicleInfo.marque} {vehicleInfo.modele || ""}
+              {vehicleInfo.marque || vehicleInfo.brand || vehicleInfo.make}{" "}
+              {vehicleInfo.modele || vehicleInfo.model || ""}
             </Text>
           </View>
         )}
-        {vehicleInfo?.immatriculation && (
+        {vehicleInfo && (typeof vehicleInfo === "object") && (vehicleInfo.immatriculation || vehicleInfo.plate || vehicleInfo.registration) && (
           <View style={styles.detailRow}>
             <Ionicons name="card-outline" size={15} color={Colors.textSecondary} />
-            <Text style={styles.detailText}>{vehicleInfo.immatriculation}</Text>
+            <Text style={styles.detailText}>{vehicleInfo.immatriculation || vehicleInfo.plate || vehicleInfo.registration}</Text>
           </View>
         )}
         {reservation.notes && (
