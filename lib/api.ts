@@ -72,7 +72,14 @@ export async function apiCall<T = any>(
 
   const setCookie = res.headers.get("set-cookie");
   if (setCookie) {
-    sessionCookie = setCookie;
+    const cookies = setCookie.split(",").map(c => c.trim());
+    const sessionCookieValue = cookies.find(c => c.startsWith("myjantes.sid=") || c.startsWith("connect.sid="));
+    if (sessionCookieValue) {
+      const cookiePart = sessionCookieValue.split(";")[0];
+      sessionCookie = cookiePart;
+    } else {
+      sessionCookie = setCookie.split(";")[0];
+    }
   }
 
   if (!res.ok) {
@@ -112,7 +119,7 @@ export interface UserProfile {
   postalCode: string | null;
   city: string | null;
   profileImageUrl: string | null;
-  role: "client" | "client_professionnel" | "admin" | "super_admin";
+  role: "client" | "client_professionnel" | "admin" | "super_admin" | "superadmin";
   garageId: string | null;
   companyName: string | null;
   siret: string | null;

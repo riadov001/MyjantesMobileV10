@@ -34,9 +34,11 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await login({ email: email.trim(), password });
+      setTimeout(() => {
+        router.replace("/(main)/(tabs)" as any);
+      }, 50);
     } catch (err: any) {
       Alert.alert("Erreur de connexion", err.message || "Identifiants incorrects.");
-    } finally {
       setLoading(false);
     }
   };

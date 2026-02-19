@@ -67,16 +67,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (data: LoginData) => {
     try {
       const result = await authApi.login(data);
-      setUser(result.user);
+      if (result?.user) {
+        setUser(result.user);
+      } else if ((result as any)?.id) {
+        setUser(result as any);
+      }
       const { getSessionCookie } = require("./api");
       const cookie = getSessionCookie();
       if (cookie) {
         await storeToken("session_cookie", cookie);
       }
-      // Use setTimeout to ensure the navigation happens after state update
-      setTimeout(() => {
-        router.replace("/(main)/(tabs)");
-      }, 100);
     } catch (error) {
       console.error("Login error:", error);
       throw error;
