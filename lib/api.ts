@@ -63,7 +63,10 @@ export async function apiCall<T = any>(
     if (body && typeof body === 'object' && Object.keys(body).length > 0) {
       fetchOptions.body = JSON.stringify(body);
     }
-    console.log(`DEBUG: API Call to ${url}`, { method, hasBody: !!fetchOptions.body });
+    // Debug log for API calls
+    if (__DEV__) {
+      console.log(`DEBUG: API Call to ${url}`, { method, hasBody: !!fetchOptions.body });
+    }
     res = await expoFetch(url, fetchOptions);
   }
 
