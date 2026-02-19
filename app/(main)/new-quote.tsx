@@ -148,15 +148,27 @@ export default function NewQuoteScreen() {
 
     setSubmitting(true);
     try {
-      // DEBUG: Log the actual photo keys being sent
-      console.log("DEBUG: Final photo keys to send:", photos.map(p => p.key));
+      // Create items from selected services
+      const items = selectedServices.map(serviceId => {
+        const service = services.find((s: Service) => s.id === serviceId);
+        return {
+          serviceId: serviceId,
+          description: service?.name || "Service",
+          quantity: 1,
+          unitPrice: parseFloat(service?.basePrice || "0"),
+          total: parseFloat(service?.basePrice || "0")
+        };
+      });
 
       const quoteData = {
         services: selectedServices,
+        items: items,
         notes: notes.trim() || undefined,
         photos: photos.map((p) => p.key),
-        image_urls: photos.map((p) => p.key), // Backend might expect this
         paymentMethod: "wire_transfer",
+        status: "pending",
+        quoteAmount: items.reduce((sum, item) => sum + item.total, 0),
+        totalAmount: items.reduce((sum, item) => sum + item.total, 0),
       };
 
       console.log("DEBUG: Full quoteData payload:", JSON.stringify(quoteData));
@@ -170,7 +182,7 @@ export default function NewQuoteScreen() {
       Alert.alert(
         "Demande envoyée !",
         "Votre demande de devis a été envoyée avec succès. Nous vous recontacterons rapidement.",
-        [{ text: "OK", onPress: () => router.back() }]
+        [{ text: "OK", onPress: () => router.push("/(main)/(tabs)/quotes") }]
       );
     } catch (err: any) {
       Alert.alert("Erreur", err.message || "Impossible d'envoyer la demande.");
