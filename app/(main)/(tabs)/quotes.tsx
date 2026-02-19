@@ -98,7 +98,7 @@ export default function QuotesScreen() {
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: quotesRaw = [], isLoading, refetch } = useQuery({
+  const { data: quotesRaw, isLoading, refetch } = useQuery({
     queryKey: ["quotes"],
     queryFn: quotesApi.getAll,
   });
@@ -107,9 +107,12 @@ export default function QuotesScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  }, []);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   return (
     <View style={styles.container}>

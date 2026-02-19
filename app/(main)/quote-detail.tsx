@@ -9,6 +9,7 @@ import {
   Pressable,
   Alert,
 } from "react-native";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -81,7 +82,7 @@ export default function QuoteDetailScreen() {
   const [accepting, setAccepting] = useState(false);
   const [rejecting, setRejecting] = useState(false);
 
-  const { data: allQuotesRaw = [], isLoading } = useQuery({
+  const { data: allQuotesRaw, isLoading } = useQuery({
     queryKey: ["quotes"],
     queryFn: quotesApi.getAll,
   });
@@ -328,7 +329,11 @@ export default function QuoteDetailScreen() {
             <View style={styles.photosGrid}>
               {quotePhotos.map((photo: any, idx: number) => (
                 <View key={idx} style={styles.photoThumb}>
-                  <Ionicons name="image" size={24} color={Colors.textTertiary} />
+                  <Image 
+                    source={{ uri: (photo as any).url || (photo as any).uri || photo }} 
+                    style={styles.photoImage} 
+                    contentFit="cover"
+                  />
                   <Text style={styles.photoLabel}>Photo {idx + 1}</Text>
                 </View>
               ))}
@@ -600,16 +605,25 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 10,
     backgroundColor: Colors.surface,
-    justifyContent: "center",
-    alignItems: "center",
+    overflow: "hidden",
     borderWidth: 1,
     borderColor: Colors.border,
-    gap: 4,
+  },
+  photoImage: {
+    width: "100%",
+    height: "100%",
   },
   photoLabel: {
-    fontSize: 10,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textTertiary,
+    position: "absolute",
+    bottom: 4,
+    left: 4,
+    right: 4,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    color: "#fff",
+    fontSize: 9,
+    textAlign: "center",
+    borderRadius: 4,
+    paddingVertical: 2,
   },
   notesText: {
     fontSize: 14,

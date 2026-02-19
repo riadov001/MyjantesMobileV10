@@ -24,12 +24,14 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: services = [], isLoading: loadingServices, refetch: refetchServices } = useQuery({
+  const { data: servicesRaw, isLoading: loadingServices, refetch: refetchServices } = useQuery({
     queryKey: ["services"],
     queryFn: servicesApi.getAll,
   });
 
-  const { data: quotesRaw = [], refetch: refetchQuotes } = useQuery({
+  const services = Array.isArray(servicesRaw) ? servicesRaw : [];
+
+  const { data: quotesRaw, refetch: refetchQuotes } = useQuery({
     queryKey: ["quotes"],
     queryFn: quotesApi.getAll,
   });

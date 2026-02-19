@@ -100,7 +100,7 @@ export default function InvoicesScreen() {
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: invoicesRaw = [], isLoading, refetch } = useQuery({
+  const { data: invoicesRaw, isLoading, refetch } = useQuery({
     queryKey: ["invoices"],
     queryFn: invoicesApi.getAll,
     retry: 1,
@@ -110,9 +110,12 @@ export default function InvoicesScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  }, []);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   return (
     <View style={styles.container}>

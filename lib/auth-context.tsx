@@ -64,12 +64,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (data: LoginData) => {
-    const result = await authApi.login(data);
-    setUser(result.user);
-    const { getSessionCookie } = require("./api");
-    const cookie = getSessionCookie();
-    if (cookie) {
-      await storeToken("session_cookie", cookie);
+    try {
+      const result = await authApi.login(data);
+      setUser(result.user);
+      const { getSessionCookie } = require("./api");
+      const cookie = getSessionCookie();
+      if (cookie) {
+        await storeToken("session_cookie", cookie);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
     }
   };
 

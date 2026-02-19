@@ -195,7 +195,12 @@ export default function NewQuoteScreen() {
   };
 
     const canSubmit = selectedServices.length > 0 && photos.length > 0 && !submitting;
-    console.log("DEBUG: canSubmit", canSubmit, "services", selectedServices.length, "photos", photos.length);
+    
+    // Safety check for services data
+    const safeServices = Array.isArray(services) ? services : [];
+    const safePhotos = Array.isArray(photos) ? photos : [];
+    
+    console.log("DEBUG: canSubmit", canSubmit, "services", safeServices.length, "photos", safePhotos.length);
 
   return (
     <View style={styles.container}>

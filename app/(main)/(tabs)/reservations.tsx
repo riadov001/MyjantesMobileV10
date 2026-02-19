@@ -110,7 +110,7 @@ export default function ReservationsScreen() {
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: reservationsRaw = [], isLoading, refetch } = useQuery({
+  const { data: reservationsRaw, isLoading, refetch } = useQuery({
     queryKey: ["reservations"],
     queryFn: reservationsApi.getAll,
     retry: 1,
@@ -120,9 +120,12 @@ export default function ReservationsScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  }, []);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   return (
     <View style={styles.container}>
