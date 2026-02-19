@@ -157,22 +157,22 @@ export default function NewQuoteScreen() {
       });
 
       const quoteData = {
-        services: selectedServices,
-        items: items,
+        serviceIds: selectedServices,
         notes: notes.trim() || undefined,
         photos: photos.map((p) => p.key),
-        paymentMethod: "wire_transfer",
-        status: "pending",
-        quoteAmount: items.reduce((sum, item) => sum + item.total, 0),
+        items: items,
         totalAmount: items.reduce((sum, item) => sum + item.total, 0),
-        // Compatibility fields
-        serviceIds: selectedServices,
-        image_urls: photos.map((p) => p.uri),
+        status: "pending",
+        paymentMethod: "wire_transfer",
       };
 
       console.log("DEBUG: Sending quote", JSON.stringify(quoteData));
 
-      const result = await quotesApi.create(quoteData);
+      // Try with direct apiCall to bypass any potential issues in quotesApi.create
+      const result = await apiCall("/api/quotes", {
+        method: "POST",
+        body: quoteData,
+      });
       console.log("DEBUG: Server response:", JSON.stringify(result));
 
       if (Platform.OS !== "web") {

@@ -1,6 +1,7 @@
 import { fetch as expoFetch } from "expo/fetch";
 import { Platform } from "react-native";
 
+// Force API_BASE to be consistent
 const API_BASE = "https://appmyjantes.mytoolsgroup.eu";
 
 interface ApiOptions {
@@ -13,7 +14,13 @@ interface ApiOptions {
 let sessionCookie: string | null = null;
 
 export function setSessionCookie(cookie: string | null) {
-  sessionCookie = cookie;
+  if (cookie && !cookie.includes("myjantes.sid") && !cookie.includes("connect.sid")) {
+    // If it's just the value, wrap it
+    sessionCookie = `myjantes.sid=${cookie}`;
+  } else {
+    sessionCookie = cookie;
+  }
+  console.log("DEBUG: Cookie set to", sessionCookie);
 }
 
 export function getSessionCookie() {
@@ -60,12 +67,16 @@ export async function apiCall<T = any>(
       headers: fetchHeaders,
       credentials: "include" as const,
     };
-    if (body && typeof body === 'object' && Object.keys(body).length > 0) {
-      fetchOptions.body = JSON.stringify(body);
+    if (body) {
+      if (typeof body === 'object') {
+        fetchOptions.body = JSON.stringify(body);
+      } else {
+        fetchOptions.body = String(body);
+      }
     }
     // Debug log for API calls
     if (__DEV__) {
-      console.log(`DEBUG: API Call to ${url}`, { method, hasBody: !!fetchOptions.body });
+      console.log(`DEBUG: API Call to ${url}`, { method, hasBody: !!fetchOptions.body, body: fetchOptions.body });
     }
     res = await expoFetch(url, fetchOptions);
   }

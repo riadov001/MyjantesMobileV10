@@ -13,6 +13,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Audio } from 'expo-av';
 import { notificationsApi, Notification } from "@/lib/api";
 import Colors from "@/constants/colors";
 import { FloatingSupport } from "@/components/FloatingSupport";
@@ -140,7 +141,39 @@ export default function NotificationsScreen() {
     refetchInterval: 30000,
   });
 
+  const [lastNotificationId, setLastNotificationId] = useState<string | null>(null);
+
+  const playNotificationSound = useCallback(async () => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('@/assets/sounds/notification.mp3')
+      );
+      await sound.playAsync();
+      // Unload sound from memory after playing
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          sound.unloadAsync();
+        }
+      });
+    } catch (error) {
+      console.log('Error playing sound:', error);
+    }
+  }, []);
+
   const notifications = Array.isArray(notificationsRaw) ? notificationsRaw : [];
+
+  React.useEffect(() => {
+    if (notifications.length > 0) {
+      const latest = [...notifications].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )[0];
+      
+      if (lastNotificationId && latest.id !== lastNotificationId && !latest.isRead) {
+        playNotificationSound();
+      }
+      setLastNotificationId(latest.id);
+    }
+  }, [notifications, lastNotificationId, playNotificationSound]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

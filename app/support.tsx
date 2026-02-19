@@ -45,12 +45,20 @@ export default function SupportScreen() {
 
     setSending(true);
     try {
-      const result = await supportApi.contact({
+      // Support API might expect specific fields or format
+      const supportData = {
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        category,
+        category: category,
         subject: subject.trim(),
         message: message.trim(),
+      };
+      
+      console.log("DEBUG: Sending support", JSON.stringify(supportData));
+      
+      const result = await apiCall("/api/support/contact", {
+        method: "POST",
+        body: supportData,
       });
       
       console.log("DEBUG: Support result", result);
